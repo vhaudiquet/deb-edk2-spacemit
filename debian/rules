@@ -1,0 +1,39 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+# EDK2 build environment
+export WORKSPACE = $(CURDIR)
+export PACKAGES_PATH = $(WORKSPACE)/edk2:$(WORKSPACE)/edk2-platforms
+export GCC5_RISCV64_PREFIX = riscv64-linux-gnu-
+export PYTHON_COMMAND = python3
+
+PLATFORM_DSC = Platform/Spacemit/K3/MUSE-Pico/MUSE-Pico.dsc
+BUILD_TARGET = RELEASE
+FIT_OUTPUT = $(WORKSPACE)/fitimage/MUSE-Pico/MUSE-Pico.itb
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+
+override_dh_auto_build:
+	bash -c "source edk2/edksetup.sh && make -C edk2/BaseTools -j$$(nproc)"
+	bash -c "source edk2/edksetup.sh && build -a RISCV64 \
+		-p $(PLATFORM_DSC) -t GCC5 -b $(BUILD_TARGET) -n $$(nproc)"
+	cp $(FIT_OUTPUT) $(WORKSPACE)/edk2.itb
+
+override_dh_auto_install:
+
+override_dh_auto_test:
+
+override_dh_auto_clean:
+	rm -rf $(WORKSPACE)/Build
+	rm -rf $(WORKSPACE)/fitimage
+	rm -f $(WORKSPACE)/edk2.itb
+	rm -rf $(WORKSPACE)/Conf/.cache
+	$(MAKE) -C edk2/BaseTools clean 2>/dev/null || true
+
+override_dh_strip:
+
+override_dh_shlibdeps:

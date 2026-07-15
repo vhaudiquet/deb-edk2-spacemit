@@ -1,0 +1,27 @@
+Source: edk2-spacemit
+Section: devel
+Priority: optional
+Maintainer: weizhi.li <weizhi.li@spacemit.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ python3:any,
+ u-boot-tools,
+ device-tree-compiler,
+ uuid-dev,
+Standards-Version: 4.7.3
+Homepage: https://github.com/spacemit-com/edk2-spacemit
+Rules-Requires-Root: no
+
+Package: edk2-spacemit
+Section: devel
+Architecture: any
+Multi-Arch: foreign
+Depends:
+ ${misc:Depends},
+Description: UEFI firmware FIT image for SpaceMit K3 (Pico-itx/Com260)
+ This package provides the UEFI firmware FIT image built from EDK2 for
+ the SpaceMit K3 RISC-V SoC platform (Pico-itx/Com260 board).
+ .
+ The firmware image (edk2.itb) is installed to /usr/lib/uefi/spacemit/
+ and can be flashed to the board to enable UEFI boot.
+ .
