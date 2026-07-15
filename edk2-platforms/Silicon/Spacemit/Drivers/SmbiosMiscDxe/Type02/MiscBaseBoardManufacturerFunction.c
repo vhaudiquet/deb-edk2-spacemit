@@ -45,6 +45,7 @@ SMBIOS_MISC_TABLE_FUNCTION (MiscBaseBoardManufacturer) {
   CHAR16              *pSerialNumber;
   CHAR16              *pAssetTag;
   CHAR16              *pChassisLocation;
+  CHAR16              Ucs2Buf[SMBIOS_STRING_MAX_LENGTH];
   UINTN               RecordLength;
   UINTN               ManuStrLen;
   UINTN               ProductNameStrLen;
@@ -85,25 +86,41 @@ SMBIOS_MISC_TABLE_FUNCTION (MiscBaseBoardManufacturer) {
 
   InputData = (SMBIOS_TABLE_TYPE2 *) RecordData;
 
-  pBaseBoardManufacturer = (CHAR16 *) PcdGetPtr (PcdSmbiosBaseBoardManufacturer);
+  if (!EFI_ERROR (SmbiosMiscGetPlatformInfoString ("manufacturer", Ucs2Buf, ARRAY_SIZE (Ucs2Buf)))) {
+    pBaseBoardManufacturer = Ucs2Buf;
+  } else {
+    pBaseBoardManufacturer = (CHAR16 *) PcdGetPtr (PcdSmbiosBaseBoardManufacturer);
+  }
   if (StrLen (pBaseBoardManufacturer) > 0) {
     TokenToUpdate = STRING_TOKEN (STR_MISC_BASE_BOARD_MANUFACTURER);
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pBaseBoardManufacturer, NULL);
   }
 
-  pBaseBoardProductName = (CHAR16 *) PcdGetPtr (PcdSmbiosBaseBoardProductName);
+  if (!EFI_ERROR (SmbiosMiscGetPlatformInfoString ("product_name", Ucs2Buf, ARRAY_SIZE (Ucs2Buf)))) {
+    pBaseBoardProductName = Ucs2Buf;
+  } else {
+    pBaseBoardProductName = (CHAR16 *) PcdGetPtr (PcdSmbiosBaseBoardProductName);
+  }
   if (StrLen (pBaseBoardProductName) > 0) {
     TokenToUpdate = STRING_TOKEN (STR_MISC_BASE_BOARD_PRODUCT_NAME);
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pBaseBoardProductName, NULL);
   }
 
-  pVersion = (CHAR16 *) PcdGetPtr (PcdSmbiosBaseBoardVersion);
+  if (!EFI_ERROR (SmbiosMiscGetPlatformInfoString ("part#", Ucs2Buf, ARRAY_SIZE (Ucs2Buf)))) {
+    pVersion = Ucs2Buf;
+  } else {
+    pVersion = (CHAR16 *) PcdGetPtr (PcdSmbiosBaseBoardVersion);
+  }
   if (StrLen (pVersion) > 0) {
     TokenToUpdate = STRING_TOKEN (STR_MISC_BASE_BOARD_VERSION);
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pVersion, NULL);
   }
 
-  pSerialNumber = (CHAR16 *) PcdGetPtr (PcdSmbiosBaseBoardSerialNumber);
+  if (!EFI_ERROR (SmbiosMiscGetPlatformInfoString ("serial#", Ucs2Buf, ARRAY_SIZE (Ucs2Buf)))) {
+    pSerialNumber = Ucs2Buf;
+  } else {
+    pSerialNumber = (CHAR16 *) PcdGetPtr (PcdSmbiosBaseBoardSerialNumber);
+  }
   if (StrLen (pSerialNumber) > 0) {
     TokenToUpdate = STRING_TOKEN (STR_MISC_BASE_BOARD_SERIAL_NUMBER);
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pSerialNumber, NULL);

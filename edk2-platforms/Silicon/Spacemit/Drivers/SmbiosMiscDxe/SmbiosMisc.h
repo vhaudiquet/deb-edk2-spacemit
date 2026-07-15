@@ -117,6 +117,29 @@ SmbiosMiscGetLinkTypeHandle (
   OUT UINTN   *HandleCount
   );
 
+/**
+  Try to read a board-identifying string from the SpacemiT PlatformInfo protocol
+  (backed by the TLV EEPROM). The value is returned as UCS-2 so it can be fed
+  directly to HiiSetString().
+
+  The protocol is located lazily and cached on success. If it is absent (e.g.
+  no EEPROM/TLV driver), the function returns EFI_NOT_FOUND so the caller can
+  fall back to its PCD/HII default.
+
+  @param[in]  FieldName  PlatformInfo field name, e.g. "manufacturer".
+  @param[out] Out        Caller-allocated UCS-2 buffer.
+  @param[in]  OutChars   Capacity of Out in CHAR16 units (incl. NUL terminator).
+
+  @retval EFI_SUCCESS    A non-empty value was retrieved and copied to Out.
+  @retval EFI_NOT_FOUND  Protocol absent, field absent, or value empty.
+**/
+EFI_STATUS
+SmbiosMiscGetPlatformInfoString (
+  IN  CONST CHAR8  *FieldName,
+  OUT CHAR16       *Out,
+  IN  UINTN        OutChars
+  );
+
 //
 // Data Table Array
 //

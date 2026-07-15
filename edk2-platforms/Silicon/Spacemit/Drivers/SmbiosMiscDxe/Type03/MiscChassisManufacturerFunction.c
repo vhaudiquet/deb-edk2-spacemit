@@ -44,6 +44,7 @@ SMBIOS_MISC_TABLE_FUNCTION (MiscChassisManufacturer) {
   CHAR16              *pSerialNumber;
   CHAR16              *pAssertTag;
   CHAR16              *pChassisSkuNumber;
+  CHAR16              Ucs2Buf[SMBIOS_STRING_MAX_LENGTH];
   UINTN               RecordLength;
   UINTN               ManuStrLen;
   UINTN               VerStrLen;
@@ -76,7 +77,11 @@ SMBIOS_MISC_TABLE_FUNCTION (MiscChassisManufacturer) {
 
   InputData = (SMBIOS_TABLE_TYPE3 *)RecordData;
 
-  pManufacturer = (CHAR16 *) PcdGetPtr (PcdSmbiosClassisManufacturer);
+  if (!EFI_ERROR (SmbiosMiscGetPlatformInfoString ("manufacturer", Ucs2Buf, ARRAY_SIZE (Ucs2Buf)))) {
+    pManufacturer = Ucs2Buf;
+  } else {
+    pManufacturer = (CHAR16 *) PcdGetPtr (PcdSmbiosClassisManufacturer);
+  }
   if (StrLen (pManufacturer) > 0) {
     TokenToUpdate = STRING_TOKEN (STR_MISC_CHASSIS_MANUFACTURER);
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pManufacturer, NULL);
@@ -88,7 +93,11 @@ SMBIOS_MISC_TABLE_FUNCTION (MiscChassisManufacturer) {
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pVersion, NULL);
   }
 
-  pSerialNumber = (CHAR16 *) PcdGetPtr (PcdSmbiosClassisSerialNumber);
+  if (!EFI_ERROR (SmbiosMiscGetPlatformInfoString ("serial#", Ucs2Buf, ARRAY_SIZE (Ucs2Buf)))) {
+    pSerialNumber = Ucs2Buf;
+  } else {
+    pSerialNumber = (CHAR16 *) PcdGetPtr (PcdSmbiosClassisSerialNumber);
+  }
   if (StrLen (pSerialNumber) > 0) {
     TokenToUpdate = STRING_TOKEN (STR_MISC_CHASSIS_SERIAL_NUMBER);
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pSerialNumber, NULL);

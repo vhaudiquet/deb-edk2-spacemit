@@ -66,6 +66,7 @@
 
 [Protocols]
   gEfiSmbiosProtocolGuid                       # PROTOCOL ALWAYS_CONSUMED
+  gSpacemitPlatformInfoProtocolGuid            # PROTOCOL ALWAYS_CONSUMED
 
 [Pcd]
   #
@@ -117,6 +118,7 @@
   gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultPlatformLang
 
 [Guids]
+  gEfiEventReadyToBootGuid                  ## CONSUMES ## Event group (ReadyToBoot fallback)
 
 [Depex]
   gEfiSmbiosProtocolGuid
