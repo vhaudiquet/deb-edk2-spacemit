@@ -36,7 +36,7 @@ configure)
         exit 0
     fi
 
-    # 检测是否为UEFI启动
+    # Check whether booting via UEFI
     IS_UEFI=1
     if [ ! -d "/sys/firmware/efi" ]; then
         IS_UEFI=0
@@ -44,41 +44,41 @@ configure)
         exit 0
     fi
 
-    # 解析 /proc/mtd 判断分区布局
+    # Parse /proc/mtd to determine the partition layout
     if [ ! -f "/proc/mtd" ]; then
         echo "Error: /proc/mtd not found, cannot determine MTD partition layout"
         exit 0
     fi
 
-    # 获取 mtd0 的名称
+    # Get the name of mtd0
     MTD0_NAME=$(grep '^mtd0:' /proc/mtd | awk -F'"' '{print $2}')
 
     if [ "$MTD0_NAME" = "bootinfo" ]; then
-        # mtd0 是 bootinfo，说明各组件有独立分区，按分区编号写入
+        # mtd0 is bootinfo, meaning each component has its own partition; write by partition number
         EDK2=/dev/mtdblock5
-        # 以KB为单位
+        # In KB units
         EDK2_SEEK=0
     else
-        # mtd0 是整个设备，使用偏移方式写入
+        # mtd0 is the whole device; write using an offset
         echo "Detected MTD partition layout: single device with offsets (mtd0=$MTD0_NAME)"
         EDK2=/dev/mtdblock0
-        # 以KB为单位
+        # In KB units
         EDK2_SEEK=2112
     fi
 
     BIN_DIR="/usr/lib/uefi/$target"
-    # 待检查文件列表
+    # List of files to check
     files="${BIN_DIR}/edk2.itb"
 
     for file in $files; do
         if [ ! -e "$file" ]; then
-            # 任意不存在则退出
+            # Exit if any file is missing
             echo "Missing $file"
             exit 0
         fi
     done
 
-    # 此前已经做了所有检查
+    # All checks have already been performed above
     set -x
     dd if=${BIN_DIR}/edk2.itb of=$EDK2 seek=$EDK2_SEEK bs=1K && sync
     set +x
