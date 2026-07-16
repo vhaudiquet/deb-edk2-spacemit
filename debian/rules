@@ -12,6 +12,8 @@ PLATFORM_DSC = Platform/Spacemit/K3/MUSE-Pico/MUSE-Pico.dsc
 BUILD_TARGET = RELEASE
 FIT_OUTPUT = $(WORKSPACE)/fitimage/MUSE-Pico/MUSE-Pico.itb
 
+DEB_VERSION := $(shell dpkg-parsechangelog -S Version)
+
 %:
 	dh $@
 
@@ -20,7 +22,8 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	bash -c "source edk2/edksetup.sh && make -C edk2/BaseTools -j$$(nproc)"
 	bash -c "source edk2/edksetup.sh && build -a RISCV64 \
-		-p $(PLATFORM_DSC) -t GCC5 -b $(BUILD_TARGET) -n $$(nproc)"
+		-p $(PLATFORM_DSC) -t GCC5 -b $(BUILD_TARGET) -n $$(nproc) \
+		-DPLATFORM_VERSION=$(DEB_VERSION)"
 	cp $(FIT_OUTPUT) $(WORKSPACE)/edk2.itb
 
 override_dh_auto_install:
