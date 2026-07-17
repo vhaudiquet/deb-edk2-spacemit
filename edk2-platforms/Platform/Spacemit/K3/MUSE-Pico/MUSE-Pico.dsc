@@ -90,6 +90,11 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVendor|L"SPACEMIT"
   gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString|L"$(PLATFORM_VERSION)"
 
+  # SMBIOS manufacturer/family
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemManufacturer|L"SpacemiT"
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardManufacturer|L"SpacemiT"
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemFamily|L"K3"
+
 [PcdsDynamicExDefault.common.DEFAULT]
 !if $(CAPSULE_ENABLE)
   gEfiSignedCapsulePkgTokenSpaceGuid.PcdEdkiiSystemFirmwareImageDescriptor|{0x0}|VOID*|0x100
