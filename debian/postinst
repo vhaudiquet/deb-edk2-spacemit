@@ -24,10 +24,18 @@ running_in_chroot() {
 case "$1" in
 configure)
     target=""
-    if grep -q 'Spacemit(R) X100' /proc/cpuinfo; then
+    # Detect a Spacemit K3 / X100 platform.  Different kernels expose the SoC
+    # identity differently, so accept any of:
+    #   - "Spacemit(R) X100" model string in /proc/cpuinfo (older kernels)
+    #   - "spacemit,x100" uarch line in /proc/cpuinfo (newer kernels)
+    #   - "spacemit,k3" in /proc/device-tree/compatible (device tree)
+    if grep -q 'Spacemit(R) X100' /proc/cpuinfo \
+        || grep -q 'spacemit,x100' /proc/cpuinfo \
+        || { [ -r /proc/device-tree/compatible ] &&
+             grep -qa 'spacemit,k3' /proc/device-tree/compatible; }; then
         target="spacemit"
     else
-        echo "Running not in Spacemit X100, skipping install EDK2 to bootloader partition."
+        echo "Running not in Spacemit K3/X100, skipping install EDK2 to bootloader partition."
         exit 0
     fi
 
