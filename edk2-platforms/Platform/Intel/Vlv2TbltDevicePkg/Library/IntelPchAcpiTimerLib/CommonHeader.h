@@ -4,10 +4,12 @@
   This file includes package header files, library classes and protocol, PPI & GUID definitions.
 
   Copyright (c) 2007 - 2014, Intel Corporation. All rights reserved.<BR>
-                                                                                   
+                                                                                   
+
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
-                                                                                   
+                                                                                   
+
 
 **/
 

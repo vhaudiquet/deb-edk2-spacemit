@@ -81,4 +81,4 @@
   GCC:*_*_*_DLINK_FLAGS = -z common-page-size=0x1000
 
 [BuildOptions]
-!include NetworkPkg/NetworkBuildOptions.dsc.inc
+!include NetworkPkg/NetworkBuildOptions.dsc.inc

@@ -1,10 +1,12 @@
 /*++
 
   Copyright (c) 2004  - 2014, Intel Corporation. All rights reserved.<BR>
-                                                                                   
+                                                                                   
+
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
-                                                                                   
+                                                                                   
+
 
 
   \section I2cDriverStack       I2C Driver Stack

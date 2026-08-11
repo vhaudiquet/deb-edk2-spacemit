@@ -3,10 +3,12 @@
   These data is intent to decouple FVB driver with FV header.
 
 Copyright (c) 2006  - 2015, Intel Corporation. All rights reserved.<BR>
-                                                                                   
+                                                                                   
+
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
-                                                                                   
+                                                                                   
+
 
 **/
 

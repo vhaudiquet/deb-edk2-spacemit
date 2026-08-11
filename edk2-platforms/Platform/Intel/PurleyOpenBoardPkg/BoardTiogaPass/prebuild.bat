@@ -210,4 +210,4 @@ del /f %OUTPUT_DIR%\AmlOffsetTable.c > nul
 echo.
 echo GenOffset done
 
-GOTO :EOF
+GOTO :EOF

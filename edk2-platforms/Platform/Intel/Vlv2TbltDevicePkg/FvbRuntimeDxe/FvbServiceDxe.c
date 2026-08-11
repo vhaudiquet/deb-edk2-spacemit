@@ -5,10 +5,12 @@
   It depends on which Flash Device Library to be linked with this driver.
 
 Copyright (c) 2006  - 2014, Intel Corporation. All rights reserved.<BR>
-                                                                                   
+                                                                                   
+
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
-                                                                                   
+                                                                                   
+
 
 **/
 
