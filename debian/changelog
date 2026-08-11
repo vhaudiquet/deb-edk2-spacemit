@@ -1,3 +1,33 @@
+edk2-spacemit (0.0.7+fix2-1) resolute; urgency=medium
+
+  * Recycle transmit buffers in SNP GetStatus()
+  * Populate SMBIOS Type 1/2/3 OEM data from TLV EEPROM
+  * Only show error codes in release builds
+  * d/rules: use the deb version as edk2 platform version
+  * d/s/postinst: fix k3 detection
+  * d/s/postinst: translate comments
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Thu, 23 Jul 2026 13:27:30 +0200
+
+edk2-spacemit (0.0.7+fix2) resolute; urgency=medium
+
+  * fix: populate all edk2 submodules (brotli/oniguruma/etc) via --init
+    --force
+
+ -- bianbu <bianbu@bianbu-spacemitk3deb1board>  Tue, 28 Jul 2026 21:43:03 +0800
+
+edk2-spacemit (0.0.7+fix1) resolute; urgency=medium
+
+  * fix: populate brotli submodule for BaseTools build
+
+ -- bianbu <bianbu@bianbu-spacemitk3deb1board>  Tue, 28 Jul 2026 20:39:54 +0800
+
+edk2-spacemit (0.0.7) resolute; urgency=medium
+
+  * release 0.0.7
+
+ -- weizhi.li <weizhi.li@spacemit.com>  Tue, 28 Jul 2026 19:32:50 +0800
+
 edk2-spacemit (0.0.6) resolute; urgency=medium
 
   * Initial for main
