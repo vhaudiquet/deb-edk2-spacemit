@@ -18,6 +18,7 @@ Architecture: any
 Multi-Arch: foreign
 Depends:
  ${misc:Depends},
+ kmod,
 Description: UEFI firmware FIT image for SpaceMit K3 (Pico-itx/Com260)
  This package provides the UEFI firmware FIT image built from EDK2 for
  the SpaceMit K3 RISC-V SoC platform (Pico-itx/Com260 board).

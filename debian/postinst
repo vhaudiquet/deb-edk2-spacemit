@@ -58,6 +58,11 @@ configure)
         exit 0
     fi
 
+    # Ensure mtdblock is loaded.  It is built-in on SpacemiT kernels but
+    # ships as a module on mainline kernels (e.g. Ubuntu), where /dev/mtdblock*
+    # won't exist until the module is loaded.
+    modprobe mtdblock 2>/dev/null || true
+
     # Get the name of mtd0
     MTD0_NAME=$(grep '^mtd0:' /proc/mtd | awk -F'"' '{print $2}')
 
@@ -87,6 +92,11 @@ configure)
     done
 
     # All checks have already been performed above
+    if [ ! -b "$EDK2" ]; then
+        echo "Error: $EDK2 block device not found (mtdblock not available in this kernel?)"
+        exit 0
+    fi
+
     set -x
     dd if=${BIN_DIR}/edk2.itb of=$EDK2 seek=$EDK2_SEEK bs=1K && sync
     set +x
