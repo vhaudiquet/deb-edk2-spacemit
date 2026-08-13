@@ -1,3 +1,9 @@
+edk2-spacemit (0.0.7+fix2-2) resolute; urgency=medium
+
+  * d/s/postinst: load mtdblock kernel module if not present
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Thu, 13 Aug 2026 14:03:27 +0200
+
 edk2-spacemit (0.0.7+fix2-1) resolute; urgency=medium
 
   * Recycle transmit buffers in SNP GetStatus()
