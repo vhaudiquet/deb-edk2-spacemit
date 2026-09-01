@@ -90,10 +90,21 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVendor|L"SPACEMIT"
   gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString|L"$(PLATFORM_VERSION)"
 
-  # SMBIOS manufacturer/family
+  # SMBIOS board identity.  Static values come from these PCDs;
+  # SmbiosTlvOverrideDxe rewrites product name, version, SKU and serial
+  # number from the TLV EEPROM at ReadyToBoot.  Non-empty values double as
+  # fallbacks for units without TLV data; empty values report
+  # "Not Specified" and cannot be TLV-overridden.
   gSpacemitTokenSpaceGuid.PcdSmbiosSystemManufacturer|L"SpacemiT"
-  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardManufacturer|L"SpacemiT"
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemProductName|L"k3-pico-itx"
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemSerialNumber|L"Unknown"
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemSKU|L"MPK3"
   gSpacemitTokenSpaceGuid.PcdSmbiosSystemFamily|L"K3"
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardManufacturer|L"SpacemiT"
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardProductName|L"k3-pico-itx"
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardVersion|L"MPK3"
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardSerialNumber|L"Unknown"
+  gSpacemitTokenSpaceGuid.PcdSmbiosClassisSerialNumber|L"Unknown"
 
 [PcdsDynamicExDefault.common.DEFAULT]
 !if $(CAPSULE_ENABLE)
@@ -688,6 +699,9 @@
 
   # platform info
   Silicon/Spacemit/K3/Drivers/PlatformInfoDxe/PlatformInfoDxe.inf
+
+  # SMBIOS Type 1/2/3 TLV override (depends on platform info)
+  Silicon/Spacemit/Drivers/SmbiosTlvOverrideDxe/SmbiosTlvOverrideDxe.inf
 
   # eFuse read protocol
   Silicon/Spacemit/K3/Drivers/EfuseDxe/EfuseDxe.inf

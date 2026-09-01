@@ -45,7 +45,6 @@ SMBIOS_MISC_TABLE_FUNCTION (MiscSystemManufacturer) {
   CHAR16              *pSerialNumber;
   CHAR16              *pSKUNumber;
   CHAR16              *pFamily;
-  CHAR16              Ucs2Buf[SMBIOS_STRING_MAX_LENGTH];
   UINTN               ManuStrLen;
   UINTN               VerStrLen;
   UINTN               PdNameStrLen;
@@ -82,21 +81,13 @@ SMBIOS_MISC_TABLE_FUNCTION (MiscSystemManufacturer) {
 
   InputData = (SMBIOS_TABLE_TYPE1 *) RecordData;
 
-  if (!EFI_ERROR (SmbiosMiscGetPlatformInfoString ("manufacturer", Ucs2Buf, ARRAY_SIZE (Ucs2Buf)))) {
-    pManufacturer = Ucs2Buf;
-  } else {
-    pManufacturer = (CHAR16 *) PcdGetPtr (PcdSmbiosSystemManufacturer);
-  }
+  pManufacturer = (CHAR16 *) PcdGetPtr (PcdSmbiosSystemManufacturer);
   if (StrLen (pManufacturer) > 0) {
     TokenToUpdate = STRING_TOKEN (STR_MISC_SYSTEM_MANUFACTURER);
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pManufacturer, NULL);
   }
 
-  if (!EFI_ERROR (SmbiosMiscGetPlatformInfoString ("product_name", Ucs2Buf, ARRAY_SIZE (Ucs2Buf)))) {
-    pProductName = Ucs2Buf;
-  } else {
-    pProductName = (CHAR16 *) PcdGetPtr (PcdSmbiosSystemProductName);
-  }
+  pProductName = (CHAR16 *) PcdGetPtr (PcdSmbiosSystemProductName);
   if (StrLen (pProductName) > 0) {
     TokenToUpdate = STRING_TOKEN (STR_MISC_SYSTEM_PRODUCT_NAME);
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pProductName, NULL);
@@ -108,21 +99,13 @@ SMBIOS_MISC_TABLE_FUNCTION (MiscSystemManufacturer) {
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pVersion, NULL);
   }
 
-  if (!EFI_ERROR (SmbiosMiscGetPlatformInfoString ("serial#", Ucs2Buf, ARRAY_SIZE (Ucs2Buf)))) {
-    pSerialNumber = Ucs2Buf;
-  } else {
-    pSerialNumber = (CHAR16 *) PcdGetPtr (PcdSmbiosSystemSerialNumber);
-  }
+  pSerialNumber = (CHAR16 *) PcdGetPtr (PcdSmbiosSystemSerialNumber);
   if (StrLen (pSerialNumber) > 0) {
     TokenToUpdate = STRING_TOKEN (STR_MISC_SYSTEM_SERIAL_NUMBER);
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pSerialNumber, NULL);
   }
 
-  if (!EFI_ERROR (SmbiosMiscGetPlatformInfoString ("part#", Ucs2Buf, ARRAY_SIZE (Ucs2Buf)))) {
-    pSKUNumber = Ucs2Buf;
-  } else {
-    pSKUNumber = (CHAR16 *) PcdGetPtr (PcdSmbiosSystemSKU);
-  }
+  pSKUNumber = (CHAR16 *) PcdGetPtr (PcdSmbiosSystemSKU);
   if (StrLen (pSKUNumber) > 0) {
     TokenToUpdate = STRING_TOKEN (STR_MISC_SYSTEM_SKU_NUMBER);
     HiiSetString (mSmbiosMiscHiiHandle, TokenToUpdate, pSKUNumber, NULL);
