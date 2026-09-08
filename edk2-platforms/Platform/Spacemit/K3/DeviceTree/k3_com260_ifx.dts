@@ -1,0 +1,19 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ * Copyright (c) 2026, Spacemit Ltd.
+ *
+ * SpacemiT K3 COM260 IFX board.  The FIT configuration description
+ * ("k3_com260_ifx") matches the TLV EEPROM product_name so the U-Boot
+ * SPL selects this board DTB automatically.
+ */
+
+/dts-v1/;
+
+#include "K3Cpus.dtsi"
+#include "K3.dtsi"
+
+/ {
+	model = "SpacemiT K3 Com260 IFX";
+	compatible = "spacemit,k3-com260-ifx", "spacemit,k3", "riscv";
+};

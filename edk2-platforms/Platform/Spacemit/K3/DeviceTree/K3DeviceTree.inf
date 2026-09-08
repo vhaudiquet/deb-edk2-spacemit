@@ -18,6 +18,7 @@
 
 [Sources]
   K3.dts
-
+  k3-pico-itx.dts
+  k3_com260_ifx.dts
 [Packages]
   MdePkg/MdePkg.dec
