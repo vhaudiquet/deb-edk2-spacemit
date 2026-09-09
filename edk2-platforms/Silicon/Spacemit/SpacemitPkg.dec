@@ -309,31 +309,31 @@
   #
   # SMBIOS Type 1
   #
-  gSpacemitTokenSpaceGuid.PcdSmbiosSystemManufacturer|L"To Be Filled By O.E.M."|VOID*|0x30000002
-  gSpacemitTokenSpaceGuid.PcdSmbiosSystemProductName|L"To Be Filled By O.E.M."|VOID*|0x30000003
-  gSpacemitTokenSpaceGuid.PcdSmbiosSystemVersion|L"To Be Filled By O.E.M."|VOID*|0x30000004
-  gSpacemitTokenSpaceGuid.PcdSmbiosSystemSerialNumber|L"To Be Filled By O.E.M."|VOID*|0x30000005
-  gSpacemitTokenSpaceGuid.PcdSmbiosSystemSKU|L"To Be Filled By O.E.M."|VOID*|0x30000006
-  gSpacemitTokenSpaceGuid.PcdSmbiosSystemFamily|L"To Be Filled By O.E.M."|VOID*|0x30000007
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemManufacturer|L""|VOID*|0x30000002
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemProductName|L""|VOID*|0x30000003
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemVersion|L""|VOID*|0x30000004
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemSerialNumber|L""|VOID*|0x30000005
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemSKU|L""|VOID*|0x30000006
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemFamily|L""|VOID*|0x30000007
 
   #
   # SMBIOS Type 2
   #
-  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardManufacturer|L"To Be Filled By O.E.M."|VOID*|0x30000008
-  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardProductName|L"To Be Filled By O.E.M."|VOID*|0x30000009
-  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardVersion|L"To Be Filled By O.E.M."|VOID*|0x3000000A
-  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardSerialNumber|L"To Be Filled By O.E.M."|VOID*|0x3000000B
-  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardAssertTag|L"To Be Filled By O.E.M."|VOID*|0x3000000C
-  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardChassisLocation|L"To Be Filled By O.E.M."|VOID*|0x3000000D
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardManufacturer|L""|VOID*|0x30000008
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardProductName|L""|VOID*|0x30000009
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardVersion|L""|VOID*|0x3000000A
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardSerialNumber|L""|VOID*|0x3000000B
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardAssertTag|L""|VOID*|0x3000000C
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardChassisLocation|L""|VOID*|0x3000000D
 
   #
   # SMBIOS Type 3
   #
-  gSpacemitTokenSpaceGuid.PcdSmbiosClassisManufacturer|L"To Be Filled By O.E.M."|VOID*|0x3000000E
-  gSpacemitTokenSpaceGuid.PcdSmbiosClassisVersion|L"To Be Filled By O.E.M."|VOID*|0x3000000F
-  gSpacemitTokenSpaceGuid.PcdSmbiosClassisSerialNumber|L"To Be Filled By O.E.M."|VOID*|0x30000010
-  gSpacemitTokenSpaceGuid.PcdSmbiosClassisAssertTag|L"To Be Filled By O.E.M."|VOID*|0x30000011
-  gSpacemitTokenSpaceGuid.PcdSmbiosClassisSKU|L"To Be Filled By O.E.M."|VOID*|0x30000012
+  gSpacemitTokenSpaceGuid.PcdSmbiosClassisManufacturer|L""|VOID*|0x3000000E
+  gSpacemitTokenSpaceGuid.PcdSmbiosClassisVersion|L""|VOID*|0x3000000F
+  gSpacemitTokenSpaceGuid.PcdSmbiosClassisSerialNumber|L""|VOID*|0x30000010
+  gSpacemitTokenSpaceGuid.PcdSmbiosClassisAssertTag|L""|VOID*|0x30000011
+  gSpacemitTokenSpaceGuid.PcdSmbiosClassisSKU|L""|VOID*|0x30000012
   gSpacemitTokenSpaceGuid.PcdSmbiosClassisType|0|UINT8|0x30000013
   gSpacemitTokenSpaceGuid.PcdSmbiosClassisHeight|0|UINT8|0x30000014
 
