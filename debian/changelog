@@ -1,3 +1,11 @@
+edk2-spacemit (0.0.7+fix2-3) resolute; urgency=medium
+
+  * Rebased "Populate SMBIOS Type 1/2/3 OEM data.." to latest PR
+  * Added UART settings in dts for upstream OpenSBI
+  * Multi-config FIT with per-board DTBs selected by SPL from the TLV EEPROM
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Wed, 09 Sep 2026 09:45:47 +0200
+
 edk2-spacemit (0.0.7+fix2-2) resolute; urgency=medium
 
   * d/s/postinst: load mtdblock kernel module if not present
