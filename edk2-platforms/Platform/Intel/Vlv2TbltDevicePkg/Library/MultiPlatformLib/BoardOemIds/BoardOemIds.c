@@ -2,12 +2,10 @@
   ACPI oem ids setting for multiplatform.
 
   Copyright (c) 2010 - 2014, Intel Corporation. All rights reserved.<BR>
-                                                                                   
-
+                                                                                   
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
-                                                                                   
-
+                                                                                   
 
 **/
 

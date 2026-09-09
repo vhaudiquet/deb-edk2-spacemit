@@ -67,4 +67,4 @@ IIO_SLOT_CONFIG_ENTRY   mIioSlotTable[] = {
       PORT_3A_INDEX,  NO_SLT_IMP, DISABLE    , PWR_SCL_MAX , PWR_VAL_MAX , ENABLE , VPP_PORT_0    , 0x40         ,  DISABLE, VPP_PORT_MAX, VPP_ADDR_MAX  , HIDE}, // Airmax A & B
 };
 
-UINT8 mIioSlotTableEntries = sizeof(mIioSlotTable)/sizeof(IIO_SLOT_CONFIG_ENTRY);
+UINT8 mIioSlotTableEntries = sizeof(mIioSlotTable)/sizeof(IIO_SLOT_CONFIG_ENTRY);

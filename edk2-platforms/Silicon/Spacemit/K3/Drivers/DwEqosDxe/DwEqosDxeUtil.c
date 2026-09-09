@@ -1446,6 +1446,11 @@ EqosSend (
   EqosFlushBufferGeneric (Eqos, TxBuf, Length);
 
   TxDesc = EqosGetDesc (Eqos, Eqos->TxDescIdx, FALSE);
+  EqosInvalDescGeneric (Eqos, TxDesc);
+
+  if ((TxDesc->Tdes3 & EQOS_TDES3_TX_OWN) != 0) {
+    return EFI_NOT_READY;
+  }
 
   DescIdx = Eqos->TxDescIdx;
   Eqos->TxDescIdx++;

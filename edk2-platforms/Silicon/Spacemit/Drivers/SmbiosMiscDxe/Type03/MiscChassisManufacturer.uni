@@ -12,8 +12,8 @@
 
 /=#
 
-#string STR_MISC_CHASSIS_MANUFACTURER  #language en-US  "Not Specified"
-#string STR_MISC_CHASSIS_VERSION       #language en-US  "Not Specified"
-#string STR_MISC_CHASSIS_SERIAL_NUMBER #language en-US  "Not Specified"
-#string STR_MISC_CHASSIS_ASSET_TAG     #language en-US  "Not Specified"
-#string STR_MISC_CHASSIS_SKU_NUMBER    #language en-US  "Not Specified"
+#string STR_MISC_CHASSIS_MANUFACTURER  #language en-US  "To Be Filled By O.E.M."
+#string STR_MISC_CHASSIS_VERSION       #language en-US  "To Be Filled By O.E.M."
+#string STR_MISC_CHASSIS_SERIAL_NUMBER #language en-US  "To Be Filled By O.E.M."
+#string STR_MISC_CHASSIS_ASSET_TAG     #language en-US  "To Be Filled By O.E.M."
+#string STR_MISC_CHASSIS_SKU_NUMBER    #language en-US  "To Be Filled By O.E.M."

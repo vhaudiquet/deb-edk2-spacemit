@@ -37,4 +37,4 @@ InstallPhatTable (
   IN  UINTN       InfoBlockSize
   );
 
-#endif  // _PHAT_ACPI_LIB_H_
+#endif  // _PHAT_ACPI_LIB_H_
