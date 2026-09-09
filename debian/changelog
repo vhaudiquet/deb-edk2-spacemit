@@ -3,6 +3,9 @@ edk2-spacemit (0.0.7+fix2-3) resolute; urgency=medium
   * Rebased "Populate SMBIOS Type 1/2/3 OEM data.." to latest PR
   * Added UART settings in dts for upstream OpenSBI
   * Multi-config FIT with per-board DTBs selected by SPL from the TLV EEPROM
+  * Re-vendored edk2-platforms from upstream k3 branch (51d25672b)
+    via the spacemit-edk2-platforms fork; deb-local patches re-applied
+    as discrete commits on top
 
  -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Wed, 09 Sep 2026 09:45:47 +0200
 
