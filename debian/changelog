@@ -1,3 +1,9 @@
+edk2-spacemit (0.0.7+fix2-4) resolute; urgency=medium
+
+  * d/s/postinst: removed, flashing moved to spacemit-firmware
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Wed, 16 Sep 2026 14:02:10 +0200
+
 edk2-spacemit (0.0.7+fix2-3) resolute; urgency=medium
 
   * Rebased "Populate SMBIOS Type 1/2/3 OEM data.." to latest PR
