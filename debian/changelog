@@ -1,3 +1,12 @@
+edk2-spacemit (0.0.7+fix2-5) resolute; urgency=medium
+
+  * Silicon/Spacemit: LcdGraphicsOutputDxe: activate a mode before installing GOP
+  * d/control: mark uuid-dev :native; GenFw is a build-architecture
+    tool that links -luuid with the host compiler, so the unqualified
+    dependency installs the wrong-arch uuid-dev in cross builds
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Wed, 30 Sep 2026 15:33:07 +0200
+
 edk2-spacemit (0.0.7+fix2-4) resolute; urgency=medium
 
   * d/s/postinst: removed, flashing moved to spacemit-firmware
