@@ -766,6 +766,20 @@ LcdGraphicsOutputInit (
     goto Exit;
   }
 
+  //
+  // Activate the (single) mode now so that Gop.Mode->Mode and Mode->Info
+  // hold valid data from the moment the protocol is installed.
+  //
+  // OS loaders read Mode->Info directly: the Linux EFI stub fills
+  // screen_info from it without calling SetMode(), and grub-efi's efi_gop
+  // video driver resolves "auto"/"keep" gfxpayload modes against the
+  // current mode. Leaving Mode at MAX_UINT32 makes both fail.
+  //
+  Status = Instance->Gop.SetMode (&Instance->Gop, 0);
+  if (EFI_ERROR (Status)) {
+    goto Exit;
+  }
+
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &Instance->Handle,
                   &gEfiGraphicsOutputProtocolGuid,
