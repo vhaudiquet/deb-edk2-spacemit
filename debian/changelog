@@ -1,3 +1,19 @@
+edk2-spacemit (0.0.9-1) resolute; urgency=medium
+
+  * Rebased onto the upstream 0.0.9 snapshot
+  * Dropped patches carried upstream:
+    - Multi-config FIT
+    - DwEqosDxe GetStatus Tx reclaim and locking
+    - SmbiosTlvOverrideDxe / SMBIOS Type 1/2/3 TLV population
+    - Status-code mask in RELEASE builds
+    - PLATFORM_VERSION driven from the package version
+  * Re-applied deb-local patches still missing upstream: 
+    - UART compatible string for XScale UUE support
+    - EqosSend TX OWN-bit check drop,
+    - d/s/postinst removal (flashing handled by spacemit-firmware)
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Thu, 01 Oct 2026 15:30:00 +0200
+
 edk2-spacemit (0.0.9) resolute; urgency=medium
 
   * Sync edk2-platforms to e36cf450 from k3-release: EVB support, hardened
@@ -17,7 +33,69 @@ edk2-spacemit (0.0.8) resolute; urgency=medium
 
  -- weizhi.li <weizhi.li@spacemit.com>  Thu, 17 Sep 2026 10:00:00 +0800
 
+edk2-spacemit (0.0.7+fix2-5) resolute; urgency=medium
+
+  * Silicon/Spacemit: LcdGraphicsOutputDxe: activate a mode before installing GOP
+  * d/control: mark uuid-dev :native; GenFw is a build-architecture
+    tool that links -luuid with the host compiler, so the unqualified
+    dependency installs the wrong-arch uuid-dev in cross builds
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Wed, 30 Sep 2026 15:33:07 +0200
+
+edk2-spacemit (0.0.7+fix2-4) resolute; urgency=medium
+
+  * d/s/postinst: removed, flashing moved to spacemit-firmware
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Wed, 16 Sep 2026 14:02:10 +0200
+
+edk2-spacemit (0.0.7+fix2-3) resolute; urgency=medium
+
+  * Rebased "Populate SMBIOS Type 1/2/3 OEM data.." to latest PR
+  * Added UART settings in dts for upstream OpenSBI
+  * Multi-config FIT with per-board DTBs selected by SPL from the TLV EEPROM
+  * Re-vendored edk2-platforms from upstream k3 branch (51d25672b)
+    via the spacemit-edk2-platforms fork; deb-local patches re-applied
+    as discrete commits on top
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Wed, 09 Sep 2026 09:45:47 +0200
+
+edk2-spacemit (0.0.7+fix2-2) resolute; urgency=medium
+
+  * d/s/postinst: load mtdblock kernel module if not present
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Thu, 13 Aug 2026 14:03:27 +0200
+
+edk2-spacemit (0.0.7+fix2-1) resolute; urgency=medium
+
+  * Recycle transmit buffers in SNP GetStatus()
+  * Populate SMBIOS Type 1/2/3 OEM data from TLV EEPROM
+  * Only show error codes in release builds
+  * d/rules: use the deb version as edk2 platform version
+  * d/s/postinst: fix k3 detection
+  * d/s/postinst: translate comments
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Thu, 23 Jul 2026 13:27:30 +0200
+
+edk2-spacemit (0.0.7+fix2) resolute; urgency=medium
+
+  * fix: populate all edk2 submodules (brotli/oniguruma/etc) via --init
+    --force
+
+ -- bianbu <bianbu@bianbu-spacemitk3deb1board>  Tue, 28 Jul 2026 21:43:03 +0800
+
+edk2-spacemit (0.0.7+fix1) resolute; urgency=medium
+
+  * fix: populate brotli submodule for BaseTools build
+
+ -- bianbu <bianbu@bianbu-spacemitk3deb1board>  Tue, 28 Jul 2026 20:39:54 +0800
+
 edk2-spacemit (0.0.7) resolute; urgency=medium
+
+  * release 0.0.7
+
+ -- weizhi.li <weizhi.li@spacemit.com>  Tue, 28 Jul 2026 19:32:50 +0800
+
+edk2-spacemit (0.0.6) resolute; urgency=medium
 
   * Initial for main
 
