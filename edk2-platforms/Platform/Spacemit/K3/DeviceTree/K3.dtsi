@@ -5,10 +5,6 @@
  *
  */
 
-/dts-v1/;
-
-#include "K3Cpus.dtsi"
-
 / {
 	compatible = "spacemit,k3", "riscv";
 	#address-cells = <2>;

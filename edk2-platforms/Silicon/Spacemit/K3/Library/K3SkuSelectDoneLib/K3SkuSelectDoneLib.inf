@@ -1,0 +1,26 @@
+## @file
+#  Dependency hook for modules that require K3 SKU selection to be complete.
+#
+#  Copyright (c) 2026, SpacemiT Co., Ltd. All rights reserved.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001B
+  BASE_NAME                      = K3SkuSelectDoneLib
+  FILE_GUID                      = 6F78ABC7-7AB2-4FF0-A42E-1ADF930F6BE3
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = NULL|DXE_DRIVER
+  CONSTRUCTOR                    = K3SkuSelectDoneLibConstructor
+
+[Sources]
+  K3SkuSelectDoneLib.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  Silicon/Spacemit/K3/K3.dec
+
+[Depex]
+  gSpacemitK3SkuSelectDoneProtocolGuid

@@ -33,6 +33,7 @@
   0|DEFAULT
   1|COM260
   2|FML13V05
+  3|EVB
 
 !include MdePkg/MdeLibs.dsc.inc
 !include Silicon/Spacemit/Spacemit.dsc.inc
@@ -89,6 +90,22 @@
   # EDK firmware configuration
   gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVendor|L"SPACEMIT"
   gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString|L"$(PLATFORM_VERSION)"
+
+  # SMBIOS board identity.  Static values come from these PCDs;
+  # SmbiosTlvOverrideDxe rewrites product name, version, SKU and serial
+  # number from the TLV EEPROM at ReadyToBoot.  Non-empty values double as
+  # fallbacks for units without TLV data; empty values report
+  # "Not Specified" and cannot be TLV-overridden.
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemManufacturer|L"SpacemiT"
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemProductName|L"k3-pico-itx"
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemSerialNumber|L"Unknown"
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemSKU|L"MPK3"
+  gSpacemitTokenSpaceGuid.PcdSmbiosSystemFamily|L"K3"
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardManufacturer|L"SpacemiT"
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardProductName|L"k3-pico-itx"
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardVersion|L"MPK3"
+  gSpacemitTokenSpaceGuid.PcdSmbiosBaseBoardSerialNumber|L"Unknown"
+  gSpacemitTokenSpaceGuid.PcdSmbiosClassisSerialNumber|L"Unknown"
 
 [PcdsDynamicExDefault.common.DEFAULT]
 !if $(CAPSULE_ENABLE)
@@ -166,6 +183,22 @@
   gSpacemitTokenSpaceGuid.PcdSdCardDetectGpioPin|88
   gSpacemitTokenSpaceGuid.PcdSdCardDetectActive|TRUE
 
+[PcdsDynamicDefault.common.EVB]
+  # EVB hardware configuration
+  # GMAC0 + GMAC1 + GMAC2 + GMAC3 (all 4 ports available on EVB)
+  gSpacemitK3TokenSpaceGuid.PcdGmacUseMask|0x0F
+  # EVB: enable controllers 0,3,4 (PortA DRD + PortD + USB2)
+  gSpacemitK3TokenSpaceGuid.PcdUsbHostEnableMask|0x19
+  # EVB: limit controller 0,1,2,4 to HS
+  gSpacemitK3TokenSpaceGuid.PcdUsbHostHsOnlyMask|0x17
+
+  # SD card: cd-gpios = <&gpio 2 22 GPIO_ACTIVE_LOW> -> pin 86, active LOW
+  gSpacemitTokenSpaceGuid.PcdSdCardIsEnabled|TRUE
+  gSpacemitTokenSpaceGuid.PcdSdCardDetectGpioPin|86
+  gSpacemitTokenSpaceGuid.PcdSdCardDetectActive|FALSE
+  # eMMC
+  gSpacemitTokenSpaceGuid.PcdEmmcIsEnabled|TRUE
+
 [PcdsFeatureFlag.common]
   gSpacemitTokenSpaceGuid.PcdEscEnterBootMenu|FALSE
 
@@ -221,8 +254,15 @@
   # for QSPI controller in K3, Spi flash is map to address below
   gSpacemitTokenSpaceGuid.PcdSFMemMapBaseAddress|0xB8000000
 
-  # Enable error status code reporting
+  # Status code reporting mask:
+  #   bit0 (0x01) = progress codes  -> prints "PROGRESS CODE: V... I..." on serial
+  #   bit1 (0x02) = error codes     -> prints "ERROR: C...:V... I..." on serial
+  #   bit2 (0x04) = debug codes     -> routes DEBUG() output through status code
+!if $(TARGET) == RELEASE
+  gEfiMdePkgTokenSpaceGuid.PcdReportStatusCodePropertyMask|0x02
+!else
   gEfiMdePkgTokenSpaceGuid.PcdReportStatusCodePropertyMask|0x07
+!endif
 
   gSpacemitK3TokenSpaceGuid.PcdSpacemitMPMURegBase|0xd4050000
   gSpacemitK3TokenSpaceGuid.PcdSpacemitAPMURegBase|0xd4282800
@@ -632,7 +672,7 @@
   gSpacemitTokenSpaceGuid.PcdSdCardTxDelayCode|31
 
   # EMMC configuration
-  gSpacemitTokenSpaceGuid.PcdEmmcClockRate|208000000
+  gSpacemitTokenSpaceGuid.PcdEmmcClockRate|200000000
 
 !if $(ACPI_ENABLE) == TRUE
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiExposedTableVersions|0x20
@@ -676,6 +716,9 @@
 
   # platform info
   Silicon/Spacemit/K3/Drivers/PlatformInfoDxe/PlatformInfoDxe.inf
+
+  # SMBIOS Type 1/2/3 TLV override (depends on platform info)
+  Silicon/Spacemit/K3/Drivers/Smbios/SmbiosTlvOverrideDxe/SmbiosTlvOverrideDxe.inf
 
   # eFuse read protocol
   Silicon/Spacemit/K3/Drivers/EfuseDxe/EfuseDxe.inf

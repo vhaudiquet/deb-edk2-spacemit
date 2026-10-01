@@ -13,10 +13,18 @@ BaseAddress   = 0x00000000 # The base address of the Firmware in NOR Flash.
 Size          = 0x00800000 # The size in bytes of the FLASH Device
 ErasePolarity = 1
 
-0x00000000|0x00300000
+#
+# The capsule image carries the firmware code only:
+#   [ fit header ][ FvMain ][ dtb ]
+# The NVRAM area lives in FD.MUSE-PicoVar at a fixed NOR flash offset and is
+# not part of the FIT image, so a capsule update never rewrites the variables
+# stored on the board. Keep this region firmware-only and keep the NVRAM start
+# in a fixed offset.
+#
+0x00000000|0x00400000
 FILE = $(FIRMWARE_IMAGE)
 
-0x00300000|0x00010000
+0x00400000|0x00010000
 FILE = $(WORKSPACE)/$(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/SYSTEMFIRMWAREDESCRIPTOR.Fv
 
 [FV.SystemFirmwareUpdateCargo]

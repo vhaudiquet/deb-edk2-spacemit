@@ -62,6 +62,7 @@
   gEfiIfrFrontPageGuid                          ## CONSUMES ## GUID
   gSpacemitEnterSetupEventGroupGuid             ## CONSUMES
   gSpacemitExitSetupEventGroupGuid              ## CONSUMES
+  gZeroGuid                                     ## CONSUMES
 
 [Protocols]
   gEfiSmbiosProtocolGuid                        ## CONSUMES
@@ -86,6 +87,7 @@
   gSpacemitTokenSpaceGuid.PcdRtcDefaultHour                         ## CONSUMES
   gSpacemitTokenSpaceGuid.PcdRtcDefaultMinute                       ## CONSUMES
   gSpacemitTokenSpaceGuid.PcdRtcDefaultSecond                       ## CONSUMES
+  gSpacemitTokenSpaceGuid.PcdSetupFormsetOrder                      ## CONSUMES
 
 [UserExtensions.TianoCore."ExtraFiles"]
   UiAppExtra.uni

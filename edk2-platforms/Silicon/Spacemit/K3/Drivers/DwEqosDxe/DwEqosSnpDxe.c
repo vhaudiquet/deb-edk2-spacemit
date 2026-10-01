@@ -590,6 +590,7 @@ EqosSnpGetStatus (
   )
 {
   EQOS_DEVICE        *Eqos;
+  EFI_STATUS         Status;
 
   if (This == NULL) {
     return EFI_INVALID_PARAMETER;
@@ -606,9 +607,22 @@ EqosSnpGetStatus (
 
   EqosUpdateLink (Eqos);
 
-  if (TxBuf != NULL) {
-    *TxBuf = NULL;
+  //
+  // EqosReclaimTxBuffer() mutates the TxRecycleBuf[]/TxReclaimIdx/
+  // TxPendingCount state.  Take the lock only around the reclaim so
+  // the recycle bookkeeping cannot race a concurrent Transmit() and 
+  // drop a caller Buffer pointer (see the ASSERT in EqosReclaimTxBuffer).
+  //
+  Status = EfiAcquireLockOrFail (&Eqos->Lock);
+  if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "%a: Failed to get lock. Status=%r\n", __func__, Status));
+    return EFI_ACCESS_DENIED;
   }
+
+  EqosReclaimTxBuffer (Eqos, TxBuf);
+
+  EfiReleaseLock (&Eqos->Lock);
+
   //
   // InterruptStatus is not currently consumed by the upper layers,
   // but we still read it for compliance and to log any detected

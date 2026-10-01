@@ -31,6 +31,7 @@
   DebugLib
   FdtLib
   HobLib
+  MemoryAllocationLib
   PcdLib
   UefiBootServicesTableLib
   UefiDriverEntryPoint
@@ -38,6 +39,9 @@
 [Guids]
   gFdtHobGuid      ## CONSUMES
   gFdtTableGuid    ## CONSUMES
+
+[Protocols]
+  gSpacemitK3SkuSelectDoneProtocolGuid  ## PRODUCES
 
 [Depex]
   TRUE

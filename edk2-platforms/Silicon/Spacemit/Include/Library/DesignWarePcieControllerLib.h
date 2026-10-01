@@ -82,7 +82,7 @@
 #define DW_PCIE_PORT_LINK_DLL_LINK_EN             BIT(5)
 #define DW_PCIE_PORT_LINK_FAST_LINK_MODE          BIT(7)
 #define DW_PCIE_PORT_LINK_MODE_MASK               GENMASK(21, 16)
-#define DW_PCIE_PORT_LINK_MODE(n)                 (((n) && 0x3F) << 16)
+#define DW_PCIE_PORT_LINK_MODE(n)                 (((n) & 0x3F) << 16)
 #define DW_PCIE_PORT_LINK_MODE_1_LANES            DW_PCIE_PORT_LINK_MODE(0x1)
 #define DW_PCIE_PORT_LINK_MODE_2_LANES            DW_PCIE_PORT_LINK_MODE(0x3)
 #define DW_PCIE_PORT_LINK_MODE_4_LANES            DW_PCIE_PORT_LINK_MODE(0x7)

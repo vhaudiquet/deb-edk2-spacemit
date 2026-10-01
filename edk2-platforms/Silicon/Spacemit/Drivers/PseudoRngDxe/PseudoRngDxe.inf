@@ -1,7 +1,7 @@
 ## @file
-# This driver produces an EFI_RNG_PROTOCOL instance for the Armada 70x0 TRNG
+# This driver produces an EFI_RNG_PROTOCOL instance using a pseudorandom
+# number generator based on performance counter.
 #
-# Copyright (C) 2017, Linaro Ltd. All rights reserved.<BR>
 # Copyright (C) 2025, Spacemit Ltd. All rights reserved.<BR>
 #
 # SPDX-License-Identifier: BSD-2-Clause-Patent
@@ -10,11 +10,11 @@
 
 [Defines]
   INF_VERSION                    = 0x00010019
-  BASE_NAME                      = K1RngDxe
+  BASE_NAME                      = RngDxe
   FILE_GUID                      = 82511AA2-5118-403A-BE94-F193B67C3120
   MODULE_TYPE                    = DXE_DRIVER
   VERSION_STRING                 = 1.0
-  ENTRY_POINT                    = K1RngDxeEntryPoint
+  ENTRY_POINT                    = RngDxeEntryPoint
 
 [Sources]
   PseudoRngDxe.c
@@ -28,9 +28,8 @@
   IoLib
   PcdLib
   TimerLib
+  UefiBootServicesTableLib
   UefiDriverEntryPoint
-
-[Pcd]
 
 [Protocols]
   gEfiRngProtocolGuid              ## PRODUCES

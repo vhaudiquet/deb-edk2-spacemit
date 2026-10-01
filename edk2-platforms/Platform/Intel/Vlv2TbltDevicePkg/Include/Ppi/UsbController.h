@@ -1,12 +1,10 @@
 /*++
 
   Copyright (c) 2004  - 2014, Intel Corporation. All rights reserved.<BR>
-                                                                                   
-
+                                                                                   
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
-                                                                                   
-
+                                                                                   
 
   Define APIs to retrieve USB Host Controller Info such as controller type and
   I/O Port Base Address.

@@ -748,6 +748,7 @@ UiListThirdPartyDrivers (
   UI_HII_DRIVER_INSTANCE  *DriverListPtr;
   EFI_STRING              NewName;
   BOOLEAN                 EmptyLineAfter;
+  EFI_GUID                *OrderedFormsetGuid;
 
   if (gHiiDriverList != NULL) {
     FreePool (gHiiDriverList);
@@ -818,8 +819,46 @@ UiListThirdPartyDrivers (
 
   FreePool (HiiHandles);
 
+  OrderedFormsetGuid = PcdGetPtr (PcdSetupFormsetOrder);
+  if (OrderedFormsetGuid) {
+    while (!CompareGuid (OrderedFormsetGuid, &gZeroGuid)) {
+      Index = 0;
+      while (gHiiDriverList[Index].PromptId != 0) {
+        if (CompareGuid (OrderedFormsetGuid, &gHiiDriverList[Index].FormSetGuid)) {
+          HiiCreateGotoExOpCode (
+            StartOpCodeHandle,
+            0,
+            gHiiDriverList[Index].PromptId,
+            gHiiDriverList[Index].HelpId,
+            0,
+            (EFI_QUESTION_ID)(Index + FRONT_PAGE_KEY_DRIVER),
+            0,
+            &gHiiDriverList[Index].FormSetGuid,
+            gHiiDriverList[Index].DevicePathId
+            );
+
+          if (gHiiDriverList[Index].EmptyLineAfter) {
+            UiCreateEmptyLine (HiiHandle, StartOpCodeHandle);
+          }
+
+          CopyGuid (&gHiiDriverList[Index].FormSetGuid, &gZeroGuid);
+          break;
+        }
+
+        Index++;
+      }
+
+      OrderedFormsetGuid++;
+    }
+  }
+
   Index = 0;
   while (gHiiDriverList[Index].PromptId != 0) {
+    if (CompareGuid (&gHiiDriverList[Index].FormSetGuid, &gZeroGuid)) {
+      Index++;
+      continue;
+    }
+
     HiiCreateGotoExOpCode (
       StartOpCodeHandle,
       0,

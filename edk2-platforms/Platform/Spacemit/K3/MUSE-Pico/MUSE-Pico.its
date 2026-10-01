@@ -25,10 +25,20 @@
         };
 
         fdt_1 {
-            description = "MUSE-Pico";
+            description = "k3-pico-itx";
             type = "flat_dt";
             compression = "none";
-            data = /incbin/("./K3.dtb");
+            data = /incbin/("./k3-pico-itx.dtb");
+            hash-1 {
+                algo = "crc32";
+            };
+        };
+
+        fdt_2 {
+            description = "k3_com260_ifx";
+            type = "flat_dt";
+            compression = "none";
+            data = /incbin/("./k3-com260-ifx.dtb");
             hash-1 {
                 algo = "crc32";
             };
@@ -38,9 +48,15 @@
     configurations {
         default = "conf_1";
         conf_1 {
-            description = "MUSE-Pico";
+            description = "k3-pico-itx";
             loadables = "uefi";
             fdt = "fdt_1";
+        };
+
+        conf_2 {
+            description = "k3_com260_ifx";
+            loadables = "uefi";
+            fdt = "fdt_2";
         };
     };
 };

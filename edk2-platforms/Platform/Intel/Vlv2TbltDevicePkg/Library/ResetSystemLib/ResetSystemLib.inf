@@ -4,12 +4,10 @@
 # Reset System Library that layers on top of the I/O Library to directly
 #  access a standard SMBUS host controller.
 # Copyright (c) 2007 - 2018, Intel Corporation. All rights reserved.<BR>
-#                                                                                  
-
+#                                                                                  
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 
-#                                                                                  
-
+#                                                                                  
 #
 #
 #

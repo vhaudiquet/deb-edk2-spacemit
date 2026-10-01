@@ -4,12 +4,10 @@
 # ICH9 Acpi timer implements one instance of Timer Library. Acpi timer cannot be programmed,
 #  so it could be used by any types of drivers, including SMM drivers and Runtime drivers.
 # Copyright (c) 2007 - 2018, Intel Corporation. All rights reserved.<BR>
-#                                                                                  
-
+#                                                                                  
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 
-#                                                                                  
-
+#                                                                                  
 #
 #
 #

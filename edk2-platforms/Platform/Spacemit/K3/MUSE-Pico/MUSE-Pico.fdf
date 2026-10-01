@@ -6,7 +6,7 @@
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
 #
-# build as FIT(Flattened Image Tree) image, and image was write to spinor at offset 0xA0000
+# build as FIT(Flattened Image Tree) image, and image was write to spinor at offset 0x210000
 #
 #
 #                          offset 0x0 (PcdSFMemMapBaseAddress + 0x210000 for XIP access)
@@ -15,24 +15,21 @@
 #                                      |                           | 0x1000
 #                               0x1000 +---------------------------+
 #                                      | FvMain Image (Compressed) | FLASH_FV_MAIN_SIZE
-#                                      |                           | 0x001FF000
-#                             0x200000 +---------------------------+
-#                                      | NVRAM Area=               |
-#                                      | Variable + FTW Working +  | NVRAM_AREA_SIZE
-#                                      | FTW Spare                 |
-#                          VARS_OFFSET +---+-------------------+---+
-#                                          |                   | VARS_SIZE
-#                                          |                   |
-#                  VARS_FTW_WORKING_OFFSET +-------------------+
-#                                          |                   | VARS_FTW_WORKING_SIZE
-#                                          |                   |
-#                    VARS_FTW_SPARE_OFFSET +-------------------+
-#                                          |                   | VARS_FTW_SPARE_SIZE
-#                                          |                   |
-#                                      +---+-------------------+---+
+#                                      |                           | FW_SIZE
+#                     FW_SIZE + 0x1000 +---------------------------+
 #                                      | dtb                       |
-#                                      |                           |
-#                                      +---------------------------+
+#                                      +---------------------------+ [FD.MUSE-Pico]
+#
+# The NVRAM area is a separate FD and is NOT part of the FIT image, so a
+# firmware update - which only rewrites FD.MUSE-Pico - leaves it untouched.
+#
+#                           VARS_OFFSET +---------------------------+
+#                                       | NV_VARIABLE_STORE         | VARS_LIVE_SIZE
+#               VARS_FTW_WORKING_OFFSET +---------------------------+
+#                                       | NV_FTW_WORKING            | VARS_FTW_WORKING_SIZE
+#                 VARS_FTW_SPARE_OFFSET +---------------------------+
+#                                       | NV_FTW_SPARE              | VARS_FTW_SPARE_SIZE
+#                                       +---------------------------+ [FD.MUSE-PicoVar]
 #
 ##
 
@@ -40,16 +37,29 @@
 DEFINE BLOCK_SIZE        = 0x1000
 
 DEFINE FW_BASE_ADDRESS   = 0x102000000
-DEFINE FW_SIZE           = 0x002C0000
-DEFINE FW_BLOCKS         = 0x2C0
+DEFINE FW_SIZE           = 0x00300000
+DEFINE FW_BLOCKS         = 0x300
 
+#
+# FvMain must leave room for the FIT header (0x1000) and the dtb that follow it
+# in the FIT image, so that the whole firmware image stays below the NVRAM area.
+#
 DEFINE FVMAIN_ADDRESS    = 0x00211000
 DEFINE FVMAIN_OFFSET     = 0x00000000
-DEFINE FVMAIN_SIZE       = 0x001FF000
+DEFINE FVMAIN_SIZE       = 0x00300000
 
-DEFINE VARS_OFFSET             = $(FVMAIN_OFFSET) + $(FVMAIN_SIZE)
-DEFINE VARS_SIZE               = 0x40000
-DEFINE VARS_FTW_WORKING_OFFSET = $(VARS_OFFSET) + $(VARS_SIZE)
+#
+# The NVRAM area is built as a standalone FD so that a firmware update never
+# rewrites it. VARS_BASE_ADDRESS is pinned to an absolute NOR flash offset and
+# must NOT be derived from FVMAIN_SIZE: growing the firmware would overlay
+# the NVRAM area and wipe the variables already stored on the board.
+#
+DEFINE VARS_BASE_ADDRESS       = 0x00700000
+DEFINE VARS_OFFSET             = 0x00000000
+DEFINE VARS_SIZE               = 0xC0000
+DEFINE VARS_BLOCKS             = 0xC0
+DEFINE VARS_LIVE_SIZE          = 0x40000
+DEFINE VARS_FTW_WORKING_OFFSET = $(VARS_OFFSET) + $(VARS_LIVE_SIZE)
 DEFINE VARS_FTW_WORKING_SIZE   = 0x40000
 DEFINE VARS_FTW_SPARE_OFFSET   = $(VARS_FTW_WORKING_OFFSET) + $(VARS_FTW_WORKING_SIZE)
 DEFINE VARS_FTW_SPARE_SIZE     = 0x40000
@@ -57,22 +67,21 @@ DEFINE VARS_FTW_SPARE_SIZE     = 0x40000
 SET gSpacemitTokenSpaceGuid.PcdFdBaseAddress = $(FVMAIN_ADDRESS) - 0x1000
 SET gSpacemitTokenSpaceGuid.PcdFvBaseAddress = $(FVMAIN_ADDRESS)
 SET gSpacemitTokenSpaceGuid.PcdFdSize = $(FW_SIZE)
-SET gSpacemitTokenSpaceGuid.PcdFvSize = $(FW_SIZE) - 0x1000 - $(VARS_SIZE) - $(VARS_FTW_WORKING_SIZE) - $(VARS_FTW_SPARE_SIZE)
+SET gSpacemitTokenSpaceGuid.PcdFvSize = $(FVMAIN_SIZE)
 
 #
 # NV Storage PCDs.
 #
-SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase64   = gSpacemitTokenSpaceGuid.PcdSFMemMapBaseAddress + $(FVMAIN_ADDRESS) + $(VARS_OFFSET)
-SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableSize     = $(VARS_SIZE)
-SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase64 = gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase64 + $(VARS_SIZE)
+SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase64   = gSpacemitTokenSpaceGuid.PcdSFMemMapBaseAddress + $(VARS_BASE_ADDRESS) + $(VARS_OFFSET)
+SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableSize     = $(VARS_LIVE_SIZE)
+SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase64 = gSpacemitTokenSpaceGuid.PcdSFMemMapBaseAddress + $(VARS_BASE_ADDRESS) + $(VARS_FTW_WORKING_OFFSET)
 SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingSize   = $(VARS_FTW_WORKING_SIZE)
-SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase64   = gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase64 + $(VARS_FTW_WORKING_SIZE)
+SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase64   = gSpacemitTokenSpaceGuid.PcdSFMemMapBaseAddress + $(VARS_BASE_ADDRESS) + $(VARS_FTW_SPARE_OFFSET)
 SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareSize     = $(VARS_FTW_SPARE_SIZE)
 
 ################################################################################
 #
-# Build the variable store and the firmware code as one unified flash device
-# image.
+# Firmware code FD. This is the only image rewritten by a capsule update.
 #
 [FD.MUSE-Pico]
 BaseAddress   = $(FW_BASE_ADDRESS)
@@ -86,10 +95,23 @@ $(FVMAIN_OFFSET)|$(FVMAIN_SIZE)
 gSpacemitTokenSpaceGuid.PcdDxeFvBase|gSpacemitTokenSpaceGuid.PcdDxeFvSize
 FV = FVMAIN_COMPACT
 
+################################################################################
+#
+# Standalone NVRAM FD. It is kept out of the firmware FD so that updating the
+# firmware never rewrites the variables stored on the board.
+#
+[FD.MUSE-PicoVar]
+BaseAddress   = $(VARS_BASE_ADDRESS)
+Size          = $(VARS_SIZE)
+ErasePolarity = 1
+# It must be: Size = BlockSize * NumBlocks
+BlockSize     = $(BLOCK_SIZE)
+NumBlocks     = $(VARS_BLOCKS)
+
 #
 # NV_VARIABLE_STORE
 #
-$(VARS_OFFSET)|$(VARS_SIZE)
+$(VARS_OFFSET)|$(VARS_LIVE_SIZE)
 DATA = {
   ## This is the EFI_FIRMWARE_VOLUME_HEADER
   # ZeroVector []
@@ -213,6 +235,7 @@ INF Silicon/Spacemit/K3/Drivers/Ctf2301Dxe/Ctf2301Dxe.inf
 
 # platform info
 INF Silicon/Spacemit/K3/Drivers/PlatformInfoDxe/PlatformInfoDxe.inf
+INF Silicon/Spacemit/K3/Drivers/Smbios/SmbiosTlvOverrideDxe/SmbiosTlvOverrideDxe.inf
 
 # eFuse read protocol
 INF Silicon/Spacemit/K3/Drivers/EfuseDxe/EfuseDxe.inf

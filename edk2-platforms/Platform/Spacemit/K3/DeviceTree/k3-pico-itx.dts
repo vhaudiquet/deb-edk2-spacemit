@@ -1,0 +1,19 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ * Copyright (c) 2026, Spacemit Ltd.
+ *
+ * SpacemiT K3 Pico-ITX board.  The FIT configuration description
+ * ("k3-pico-itx") matches the TLV EEPROM product_name so the U-Boot
+ * SPL selects this board DTB automatically.
+ */
+
+/dts-v1/;
+
+#include "K3Cpus.dtsi"
+#include "K3.dtsi"
+
+/ {
+	model = "SpacemiT K3 Pico ITX";
+	compatible = "spacemit,k3-pico-itx", "spacemit,k3", "riscv";
+};

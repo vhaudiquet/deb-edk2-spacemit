@@ -12,6 +12,8 @@ PLATFORM_DSC = Platform/Spacemit/K3/MUSE-Pico/MUSE-Pico.dsc
 BUILD_TARGET = RELEASE
 FIT_OUTPUT = $(WORKSPACE)/fitimage/MUSE-Pico/MUSE-Pico.itb
 
+DEB_VERSION := $(shell dpkg-parsechangelog -S Version)
+
 %:
 	dh $@
 
@@ -20,7 +22,8 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	bash -c "source edk2/edksetup.sh && make -C edk2/BaseTools -j$$(nproc)"
 	bash -c "source edk2/edksetup.sh && build -a RISCV64 \
-		-p $(PLATFORM_DSC) -t GCC5 -b $(BUILD_TARGET) -n $$(nproc)"
+		-p $(PLATFORM_DSC) -t GCC5 -b $(BUILD_TARGET) -n $$(nproc) \
+		-DPLATFORM_VERSION=$(DEB_VERSION)"
 	cp $(FIT_OUTPUT) $(WORKSPACE)/edk2.itb
 
 override_dh_auto_install:
@@ -32,6 +35,21 @@ override_dh_auto_clean:
 	rm -rf $(WORKSPACE)/fitimage
 	rm -f $(WORKSPACE)/edk2.itb
 	rm -rf $(WORKSPACE)/Conf/.cache
+# edksetup.sh resolves CONF_PATH to $(WORKSPACE)/edk2/Conf (BuildEnv walks
+# PACKAGES_PATH looking for a Conf directory when $(WORKSPACE)/Conf is absent),
+# so the real build residue lives there.  edk2/Conf/.gitignore contains "*",
+# which keeps it out of git status, but dpkg-source would still pack it into
+# the native source tarball.
+	rm -rf $(WORKSPACE)/edk2/Conf/.cache
+	rm -f $(WORKSPACE)/edk2/Conf/.AutoGenIdFile.txt
+	rm -f $(WORKSPACE)/edk2/Conf/BuildEnv.sh
+	rm -f $(WORKSPACE)/edk2/Conf/build_rule.txt
+	rm -f $(WORKSPACE)/edk2/Conf/target.txt
+	rm -f $(WORKSPACE)/edk2/Conf/tools_def.txt
+# BaseTools' clean removes *.pyc but leaves the __pycache__ directories behind.
+# Empty directories are invisible to git yet tar records them, so they would
+# show up in the source tarball.
+	find $(WORKSPACE)/edk2 -type d -name __pycache__ -empty -delete
 	$(MAKE) -C edk2/BaseTools clean 2>/dev/null || true
 
 override_dh_strip:

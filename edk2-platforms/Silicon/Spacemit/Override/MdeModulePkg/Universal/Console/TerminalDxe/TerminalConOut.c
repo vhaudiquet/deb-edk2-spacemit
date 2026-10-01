@@ -1,7 +1,7 @@
 /** @file
   Implementation for EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL protocol.
 
-Copyright (c) 2026, SpacemiT Co., Ltd. All rights reserved.
+Copyright (c) 2026, SpacemiT Co., Ltd. All rights reserved.<BR>
 Copyright (c) 2006 - 2018, Intel Corporation. All rights reserved.<BR>
 Copyright (C) 2016 Silicon Graphics, Inc. All rights reserved.<BR>
 SPDX-License-Identifier: BSD-2-Clause-Patent
@@ -841,6 +841,8 @@ TerminalConOutEnableCursor (
   EFI_STATUS       Status;
   TERMINAL_DEV     *TerminalDevice;
   CHAR16           *String;
+  INT32            SavedColumn;
+  INT32            SavedRow;
 
   TerminalDevice = TERMINAL_CON_OUT_DEV_FROM_THIS (This);
 
@@ -850,6 +852,9 @@ TerminalConOutEnableCursor (
     String = mCursorDisableString;
   }
 
+  SavedColumn = This->Mode->CursorColumn;
+  SavedRow    = This->Mode->CursorRow;
+
   TerminalDevice->OutputEscChar = TRUE;
   Status                        = This->OutputString (This, String);
   TerminalDevice->OutputEscChar = FALSE;
@@ -857,6 +862,10 @@ TerminalConOutEnableCursor (
   if (EFI_ERROR (Status)) {
     return EFI_DEVICE_ERROR;
   }
+
+  This->Mode->CursorColumn  = SavedColumn;
+  This->Mode->CursorRow     = SavedRow;
+  This->Mode->CursorVisible = Visible;
 
   return EFI_SUCCESS;
 }
