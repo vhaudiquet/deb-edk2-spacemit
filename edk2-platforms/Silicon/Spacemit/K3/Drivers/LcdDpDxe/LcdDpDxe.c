@@ -505,19 +505,31 @@ EFI_STATUS
 DpReadEdid (
   IN  SPACEMIT_INNO_DP_PRIV  *Priv,
   OUT UINT8                  *Buf,
-  IN  INT32                  BufSize
+  IN  INT32                   BufSize
   )
 {
-  UINT32      EdidSize = EDID_LENGTH;
+  UINT8       Prev[EDID_EXT_LENGTH];
+  UINT32      PrevSize = 0;
+  BOOLEAN     HavePrev = FALSE;
   INT32       i;
-  EFI_STATUS  Status;
+  EFI_STATUS  Status = EFI_DEVICE_ERROR;
 
   DEBUG ((DEBUG_INFO, "%s\n", __FUNCTION__));
 
-  for (i = 0; i < 3; i++) {
+  /*
+   * DP-HDMI adapters need time to come up: they answer the first AUX
+   * reads with their own default EDID (or nothing at all) until they
+   * finish reading the monitor's over DDC. Poll until the EDID reads
+   * back identically twice, bounded: a fast sink costs one 150 ms
+   * settle, a slow adapter gets up to ~1.5 s.
+   */
+  for (i = 0; i < 10; i++) {
+    UINT32  EdidSize = EDID_LENGTH;
+
     Status = SocDpConnGetEdidBlock (&Priv->DpDev, Buf, 0, EDID_LENGTH);
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_INFO, "EDID read failed\n"));
+      DEBUG ((DEBUG_INFO, "EDID read failed (round %d)\n", i));
+      gBS->Stall (150 * 1000);
       continue;
     }
 
@@ -533,13 +545,34 @@ DpReadEdid (
                                         );
         if (EFI_ERROR (Status)) {
           DEBUG ((DEBUG_INFO, "additional EDID Read failed!\n"));
+          gBS->Stall (150 * 1000);
           continue;
         }
       }
     }
 
-    DpDumpEdidData (Buf, EdidSize);
-    return (EFI_STATUS)EdidSize;
+    if (HavePrev && (PrevSize == EdidSize) &&
+        (CompareMem (Buf, Prev, EdidSize) == 0))
+    {
+      DpDumpEdidData (Buf, EdidSize);
+      return (EFI_STATUS)EdidSize;
+    }
+
+    CopyMem (Prev, Buf, EdidSize);
+    PrevSize = EdidSize;
+    HavePrev = TRUE;
+
+    gBS->Stall (150 * 1000);
+  }
+
+  /*
+   * Never stabilised: fall back to the last thing the sink served, or
+   * the failure if it never answered at all.
+   */
+  if (HavePrev) {
+    CopyMem (Buf, Prev, PrevSize);
+    DpDumpEdidData (Buf, PrevSize);
+    return (EFI_STATUS)PrevSize;
   }
 
   return Status;
