@@ -180,14 +180,19 @@ QspiPollRegStatus (
  * access to RBCT/SFAR register, need retry for these two register
  */
 STATIC
-VOID
+EFI_STATUS
 QspiWriteRbct (
   IN _QSPI_HOST  *QspiHost,
   IN UINT32      Val
   )
 {
   UINT32  Temp;
+  UINTN   TimeoutUs;
 
+  //
+  // Bound the write retry; see QspiWriteSfar ().
+  //
+  TimeoutUs = QSPI_REG_POLL_TIMEOUT_MS * 1000;
   do {
     QspiRegwrite32 (QspiHost, QSPI_RBCT, Val);
     Temp = QspiRegRead32 (QspiHost, QSPI_FR);
@@ -199,18 +204,31 @@ QspiWriteRbct (
     QspiRegwrite32 (QspiHost, QSPI_FR, Temp);
 
     MicroSecondDelay (1);
+    if (!TimeoutUs--) {
+      DEBUG ((DEBUG_ERROR, "Timeout while writing QSPI_RBCT!\n"));
+      return EFI_TIMEOUT;
+    }
   } while (1);
+
+  return EFI_SUCCESS;
 }
 
 STATIC
-VOID
+EFI_STATUS
 QspiWriteSfar (
   IN _QSPI_HOST  *QspiHost,
   IN UINT32      Val
   )
 {
   UINT32  Temp;
+  UINTN   TimeoutUs;
 
+  //
+  // Bound the write retry.  If the controller keeps flagging the IP
+  // command trigger error the register never latches, and an
+  // unbounded retry here hangs the caller forever.
+  //
+  TimeoutUs = QSPI_REG_POLL_TIMEOUT_MS * 1000;
   do {
     QspiRegwrite32 (QspiHost, QSPI_SFAR, Val);
     Temp = QspiRegRead32 (QspiHost, QSPI_FR);
@@ -222,7 +240,13 @@ QspiWriteSfar (
     QspiRegwrite32 (QspiHost, QSPI_FR, Temp);
 
     MicroSecondDelay (1);
+    if (!TimeoutUs--) {
+      DEBUG ((DEBUG_ERROR, "Timeout while writing QSPI_SFAR!\n"));
+      return EFI_TIMEOUT;
+    }
   } while (1);
+
+  return EFI_SUCCESS;
 }
 
 STATIC
@@ -282,18 +306,33 @@ QspiUnlockLut (
  * of controller after setting MCR0[SWRESET] bit.
  */
 STATIC
-VOID
+EFI_STATUS
 QspiReset (
   IN _QSPI_HOST  *QspiHost
   )
 {
   UINT32  Reg, Mask;
+  UINTN   TimeoutUs;
 
+  //
+  // Bound the wait for the controller to leave the busy/XIP state.  A
+  // clock-gated or wedged controller never clears these flags, and an
+  // unbounded poll here hangs the caller forever (observed as a CPU
+  // soft lockup inside an EFI runtime service on a board whose OS
+  // gates the QSPI clocks as unused).
+  //
+  TimeoutUs = QSPI_REG_POLL_TIMEOUT_MS * 1000;
   do {
     if (!(QspiRegRead32 (QspiHost, QSPI_SR) & QSPI_SR_BUSY) &&
         !(QspiRegRead32 (QspiHost, QSPI_FR) & QSPI_FR_XIP_ON))
     {
       break;
+    }
+
+    MicroSecondDelay (1);
+    if (!TimeoutUs--) {
+      DEBUG ((DEBUG_ERROR, "Timeout while waiting QSPI ready!\n"));
+      return EFI_TIMEOUT;
     }
   } while (1);
 
@@ -316,6 +355,8 @@ QspiReset (
 
   Reg &= ~Mask;
   QspiRegwrite32 (QspiHost, QSPI_MCR, Reg);
+
+  return EFI_SUCCESS;
 }
 
 STATIC
@@ -602,12 +643,14 @@ QspiStartTransfer (
 }
 
 STATIC
-VOID
+EFI_STATUS
 SpiHostControllerInit (
   IN _QSPI_HOST  *QspiHost
   )
 {
-  UINT32  Reg;
+  EFI_STATUS  Status;
+  EFI_STATUS  ResetStatus;
+  UINT32      Reg;
 
   QspiHost->RegisterBase = ST_QSPI_REG_BASE;
   QspiHost->MaxFreq      = ST_QSPI_MAX_FREQ;
@@ -635,7 +678,10 @@ SpiHostControllerInit (
   QspiHostSetClock (QspiHost, (UINT64)QspiHost->MaxFreq);
 
   /* qspi softreset first */
-  QspiReset (QspiHost);
+  ResetStatus = QspiReset (QspiHost);
+  if (EFI_ERROR (ResetStatus)) {
+    return ResetStatus;
+  }
 
   /* clock settings */
   QspiSwtichMode (QspiHost, QSPI_DISABLE_MODE);
@@ -644,7 +690,10 @@ SpiHostControllerInit (
   QspiRegwrite32 (QspiHost, QSPI_SOCCR, 0x8);
   /* Give the default source address */
   // QspiRegwrite32(QspiHost, QSPI_SFAR, QspiHost->CsAddr[QSPI_CS_A1]);
-  QspiWriteSfar (QspiHost, QspiHost->CsAddr[QSPI_CS_A1]);
+  Status = QspiWriteSfar (QspiHost, QspiHost->CsAddr[QSPI_CS_A1]);
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
   QspiRegwrite32 (QspiHost, QSPI_SFACR, 0x0);
 
   /* config XIP read */
@@ -669,7 +718,10 @@ SpiHostControllerInit (
 
   /* Read using the IP Bus registers QSPI_RBDR0 to QSPI_RBDR31*/
   // _writel(0x1 << 8, QSPI_RBCT);
-  QspiWriteRbct (QspiHost, QSPI_RBCT_RXBRD_MASK);
+  Status = QspiWriteRbct (QspiHost, QSPI_RBCT_RXBRD_MASK);
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
 
   /* clear all interrupt status */
   QspiRegwrite32 (QspiHost, QSPI_FR, 0xffffffff);
@@ -680,6 +732,8 @@ SpiHostControllerInit (
           QspiHost->RxUnitSize, QspiHost->TxUnitSize, QspiHost->XipBufMax)
          );
   DEBUG ((DEBUG_INFO, "XIP read %a\n", QspiHost->XipRead ? "enabled" : "disabled"));
+
+  return EFI_SUCCESS;
 }
 
 STATIC
@@ -716,6 +770,7 @@ SpiTransfer (
   )
 {
   EFI_STATUS  Status;
+  EFI_STATUS  ResetStatus;
   UINT32      Address, Mask, Val, Opcode;
   UINT32      IsrCfg, SFA1AD, SFA2AD, SFB1AD, SFB2AD;
 
@@ -771,7 +826,10 @@ SpiTransfer (
   }
 
   Address += QspiHost->CsAddr[Slave->Cs + QSPI_CS_A1];
-  QspiWriteSfar (QspiHost, Address);
+  ResetStatus = QspiWriteSfar (QspiHost, Address);
+  if (EFI_ERROR (ResetStatus)) {
+    return ResetStatus;
+  }
 
   /* clear QSPI_FR before trigger LUT command */
   Val = QspiRegRead32 (QspiHost, QSPI_FR);
@@ -806,7 +864,7 @@ SpiTransfer (
   }
 
   /* invalidate the data in the AHB buffer. */
-  QspiReset (QspiHost);
+  ResetStatus = QspiReset (QspiHost);
 
   // restore QSPI controller configuration to kernel state
   if (EfiAtRuntime ()) {
@@ -819,6 +877,10 @@ SpiTransfer (
     QspiRegwrite32 (QspiHost, QSPI_FR, 0xffffffff);
     /* restore interrupt configuration */
     QspiRegwrite32 (QspiHost, QSPI_RSER, IsrCfg);
+  }
+
+  if (EFI_ERROR (ResetStatus) && !EFI_ERROR (Status)) {
+    Status = ResetStatus;
   }
 
   return Status;
@@ -917,9 +979,10 @@ SpacemitQspiEntryPoint (
   }
 
   if (!EFI_ERROR (Status)) {
-    SpiHostControllerInit (&mSpiMasterInstance->QspiHost);
+    Status = SpiHostControllerInit (&mSpiMasterInstance->QspiHost);
+  }
 
-    // Install protocols
+  if (!EFI_ERROR (Status)) {
     Status = gBS->InstallMultipleProtocolInterfaces (
                                                      &(mSpiMasterInstance->Handle),
                                                      &gSpacemitSpiMasterProtocolGuid,

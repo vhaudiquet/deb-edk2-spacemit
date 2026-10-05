@@ -274,6 +274,15 @@ enum QSPI_PAD_E {
 #define SPI_TRANSFER_END    0x02             // Deassert CS after transfers
 
 #define SPI_TIMEOUT            100000
+
+//
+// Bound (in milliseconds) for the controller register polls and write
+// retries in QspiDxe.c.  A healthy controller completes these in
+// microseconds; a clock-gated or wedged one never does, and the bound
+// turns that case into an EFI_TIMEOUT instead of a hang.
+//
+#define QSPI_REG_POLL_TIMEOUT_MS  100
+
 #define QSPI_RX_FIFO_MAX_SIZE  (128)
 #define QSPI_TX_FIFO_MAX_SIZE  (256)
 
