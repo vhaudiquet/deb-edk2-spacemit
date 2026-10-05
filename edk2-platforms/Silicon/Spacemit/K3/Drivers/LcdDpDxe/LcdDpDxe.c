@@ -413,6 +413,7 @@ DpEnable (
   SPACEMIT_MODE_INFO          *Info;
   IN UINT32                   Freq;
   SILICON_CLOCKCTRL_PROTOCOL  *ClockCtrlProtocol;
+  INT32                       i;
 
   DEBUG ((DEBUG_INFO, "%s\n", __FUNCTION__));
 
@@ -491,9 +492,28 @@ DpEnable (
   Mode->Flags |= SOC_DP_MODE_FLAG_PHSYNC;
   Mode->Flags |= SOC_DP_MODE_FLAG_PVSYNC;
 
-  if (SocDpModeSet (&Priv->DpDev, Mode) == 0) {
-    SocDpHwEnable (&Priv->DpDev);
+  /*
+   * DP-HDMI adapters need time to come up even once they serve an EDID:
+   * the first training attempt can race the adapter's own bring-up, and
+   * a failure here would light the GOP into a dead link -- no early
+   * video, and nothing for the OS handoff to adopt. Retry with a
+   * bounded delay.
+   */
+  for (i = 0; i < 5; i++) {
+    if (SocDpModeSet (&Priv->DpDev, Mode) == 0) {
+      break;
+    }
+
+    DEBUG ((DEBUG_ERROR, "DP: link training failed (round %d); retrying\n", i));
+    gBS->Stall (400 * 1000);
   }
+
+  /*
+   * Best effort either way: an untrained link still gets an enabled
+   * transmitter and a lit GOP, exactly as before -- the OS bring-up
+   * then retries from scratch.
+   */
+  SocDpHwEnable (&Priv->DpDev);
 
   return EFI_SUCCESS;
 }
@@ -505,19 +525,31 @@ EFI_STATUS
 DpReadEdid (
   IN  SPACEMIT_INNO_DP_PRIV  *Priv,
   OUT UINT8                  *Buf,
-  IN  INT32                  BufSize
+  IN  INT32                   BufSize
   )
 {
-  UINT32      EdidSize = EDID_LENGTH;
+  UINT8       Prev[EDID_EXT_LENGTH];
+  UINT32      PrevSize = 0;
+  BOOLEAN     HavePrev = FALSE;
   INT32       i;
-  EFI_STATUS  Status;
+  EFI_STATUS  Status = EFI_DEVICE_ERROR;
 
   DEBUG ((DEBUG_INFO, "%s\n", __FUNCTION__));
 
-  for (i = 0; i < 3; i++) {
+  /*
+   * DP-HDMI adapters need time to come up: they answer the first AUX
+   * reads with their own default EDID (or nothing at all) until they
+   * finish reading the monitor's over DDC. Poll until the EDID reads
+   * back identically twice, bounded: a fast sink costs one 150 ms
+   * settle, a slow adapter gets up to ~1.5 s.
+   */
+  for (i = 0; i < 10; i++) {
+    UINT32  EdidSize = EDID_LENGTH;
+
     Status = SocDpConnGetEdidBlock (&Priv->DpDev, Buf, 0, EDID_LENGTH);
     if (EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_INFO, "EDID read failed\n"));
+      DEBUG ((DEBUG_INFO, "EDID read failed (round %d)\n", i));
+      gBS->Stall (150 * 1000);
       continue;
     }
 
@@ -533,13 +565,34 @@ DpReadEdid (
                                         );
         if (EFI_ERROR (Status)) {
           DEBUG ((DEBUG_INFO, "additional EDID Read failed!\n"));
+          gBS->Stall (150 * 1000);
           continue;
         }
       }
     }
 
-    DpDumpEdidData (Buf, EdidSize);
-    return (EFI_STATUS)EdidSize;
+    if (HavePrev && (PrevSize == EdidSize) &&
+        (CompareMem (Buf, Prev, EdidSize) == 0))
+    {
+      DpDumpEdidData (Buf, EdidSize);
+      return (EFI_STATUS)EdidSize;
+    }
+
+    CopyMem (Prev, Buf, EdidSize);
+    PrevSize = EdidSize;
+    HavePrev = TRUE;
+
+    gBS->Stall (150 * 1000);
+  }
+
+  /*
+   * Never stabilised: fall back to the last thing the sink served, or
+   * the failure if it never answered at all.
+   */
+  if (HavePrev) {
+    CopyMem (Buf, Prev, PrevSize);
+    DpDumpEdidData (Buf, PrevSize);
+    return (EFI_STATUS)PrevSize;
   }
 
   return Status;

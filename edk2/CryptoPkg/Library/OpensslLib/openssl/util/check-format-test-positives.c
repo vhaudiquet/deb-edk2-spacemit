@@ -23,8 +23,7 @@
 
 /* For each of the following set of lines the tool should complain once */
 /*@ tab character: 	 */
-/*@ intra-line carriage return character: 
- */
+/*@ intra-line carriage return character:  */
 /*@ non-printable ASCII character:  */
 /*@ non-ASCII character: ä */
 /*@ whitespace at EOL: */ 

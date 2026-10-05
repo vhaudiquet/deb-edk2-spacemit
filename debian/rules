@@ -35,6 +35,21 @@ override_dh_auto_clean:
 	rm -rf $(WORKSPACE)/fitimage
 	rm -f $(WORKSPACE)/edk2.itb
 	rm -rf $(WORKSPACE)/Conf/.cache
+# edksetup.sh resolves CONF_PATH to $(WORKSPACE)/edk2/Conf (BuildEnv walks
+# PACKAGES_PATH looking for a Conf directory when $(WORKSPACE)/Conf is absent),
+# so the real build residue lives there.  edk2/Conf/.gitignore contains "*",
+# which keeps it out of git status, but dpkg-source would still pack it into
+# the native source tarball.
+	rm -rf $(WORKSPACE)/edk2/Conf/.cache
+	rm -f $(WORKSPACE)/edk2/Conf/.AutoGenIdFile.txt
+	rm -f $(WORKSPACE)/edk2/Conf/BuildEnv.sh
+	rm -f $(WORKSPACE)/edk2/Conf/build_rule.txt
+	rm -f $(WORKSPACE)/edk2/Conf/target.txt
+	rm -f $(WORKSPACE)/edk2/Conf/tools_def.txt
+# BaseTools' clean removes *.pyc but leaves the __pycache__ directories behind.
+# Empty directories are invisible to git yet tar records them, so they would
+# show up in the source tarball.
+	find $(WORKSPACE)/edk2 -type d -name __pycache__ -empty -delete
 	$(MAKE) -C edk2/BaseTools clean 2>/dev/null || true
 
 override_dh_strip:

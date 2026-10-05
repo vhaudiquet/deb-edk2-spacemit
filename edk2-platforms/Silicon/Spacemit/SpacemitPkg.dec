@@ -298,6 +298,14 @@
   }
   gSpacemitTokenSpaceGuid.PcdCpuInfoL3CacheSizeKB|0|UINT32|0x10000401
 
+  # PCDs for Setup
+  #
+  # The PCD value defines an array of formset GUIDs, ending with an zero GUID,
+  # which is used to indicate the display order of the formset on Setup Front Page.
+  # If a formset GUID is not defined in this PCD, it indicates that the formset is
+  # displayed in the order in which it is registered into the hii database.
+  gSpacemitTokenSpaceGuid.PcdSetupFormsetOrder|{GUID("00000000-0000-0000-0000-000000000000")}|VOID*|0x10000500
+
 [PcdsPatchableInModule]   # TokenNumber style is 0x2XXXXXXX, e.g. 0x20000001, 0x20000002, ...
 
 [PcdsDynamic]     # TokenNumber style is 0x3XXXXXXX, e.g. 0x30000001, 0x30000002, ...

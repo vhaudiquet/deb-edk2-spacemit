@@ -34,6 +34,7 @@ __description__ = 'Spacemit platform post-build operations.\n'
 #
 gWorkspace = ''
 gRootPath = ''
+gOutputPath = ''
 gConfigFilePath = ''
 gArgs      = None
 
@@ -107,6 +108,15 @@ def FindFile(directory, target):
                 return os.path.join(root, file)
 
     LogAlways('File %s not found in %s' % (target, directory))
+    return None
+
+def FindSubDir(directory, target):
+    for root, dirs, _files in os.walk(directory):
+        for dir in dirs:
+            if dir == target:
+                return os.path.join(root, dir)
+
+    LogAlways('SubDir %s not found in %s' % (target, directory))
     return None
 
 def GetPlatformConfig(config_file):
@@ -185,7 +195,7 @@ def BuildFitImage (config_dict):
     for file_name in file_list:
         new_file_path = NormalizePath((fit_path, os.path.dirname(file_name)))
         file_name = os.path.basename(file_name)
-        file_path = FindFile(gWorkspace, file_name)
+        file_path = FindFile(gOutputPath, file_name)
         if file_path:
             CreateDirectory(new_file_path)
             Copy(file_path, new_file_path)
@@ -241,6 +251,10 @@ def GetCmdArguments(config_dict):
             help = 'the platform description file path', required = True)
     parser.add_argument('--post', dest = "config_file", action = GetPackageFilePath,
             help = 'the post build configuration file', required = True)
+    parser.add_argument('-t', dest = "toolchain_type",
+            help = 'build toolchain type', required = True)
+    parser.add_argument('-b', dest = "build_target",
+            help = 'build target type', required = True)
 
     #
     # Parse command line arguments
@@ -296,6 +310,9 @@ if __name__ == '__main__':
     platform_config = GetPlatformConfig(arguments.config_file)
     if not platform_config or platform_config.get("CONFIG") is None:
         Error ('Platform config file %s is empty' % (arguments.config_file, ))
+
+    # get build output directory
+    gOutputPath = FindSubDir(gWorkspace, '%s_%s' % (arguments.build_target, arguments.toolchain_type))
 
     # update general build config with platform specific config
     config = platform_config.get("CONFIG")

@@ -1,11 +1,8 @@
 /** @file
 
-  This driver produces an EFI_RNG_PROTOCOL instance
-  Random number generator service that uses the SEED instruction
-  to provide pseudorandom numbers.
+  This driver produces an EFI_RNG_PROTOCOL instance using a pseudorandom
+  number generator based on performance counter.
 
-  Copyright (C) 2017, Linaro Ltd. All rights reserved.<BR>
-  Copyright (c) 2024, Rivos, Inc.
   Copyright (C) 2025, Spacemit Ltd. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
@@ -27,13 +24,21 @@
 #define MASK3   0xfff7eee000000000ULL
 #define SHIFT4  43
 
+/**
+  Generate a pseudorandom number.
+
+  @retval  A pseudorandom number based on performance counter.
+
+**/
 STATIC
 UINTN
 Rand (
   VOID
   )
 {
-  UINTN  Y = GetPerformanceCounter ();
+  UINTN  Y;
+
+  Y = GetPerformanceCounter ();
 
   Y ^= (Y >> SHIFT1) & MASK1;
   Y ^= (Y << SHIFT2) & MASK2;
@@ -41,6 +46,35 @@ Rand (
   Y ^= Y >> SHIFT4;
 
   return Y;
+}
+
+/**
+  Fill a buffer with pseudorandom data.
+
+  @param[in]  Length  The length in bytes of the buffer to fill.
+  @param[out] Bits    Pointer to the buffer to fill with random data.
+
+  @retval EFI_SUCCESS  The buffer was filled successfully.
+
+**/
+STATIC
+EFI_STATUS
+GetTrngData (
+  IN    UINTN  Length,
+  OUT   UINT8  *Bits
+  )
+{
+  UINTN  Index;
+  UINTN  Value;
+  UINTN  Bytes;
+
+  for (Index = 0; Index < Length; Index += sizeof (Value)) {
+    Value = Rand ();
+    Bytes = MIN (sizeof (Value), Length - Index);
+    CopyMem (Bits, &Value, Bytes);
+  }
+
+  return EFI_SUCCESS;
 }
 
 /**
@@ -106,24 +140,6 @@ PseudoRngGetInfo (
   return EFI_SUCCESS;
 }
 
-STATIC
-EFI_STATUS
-GetTrngData (
-  IN    UINTN  Length,
-  OUT   UINT8  *Bits
-  )
-{
-  UINTN  I, Value, Bytes;
-
-  for (I = 0; I < Length; I += sizeof (Value)) {
-    Value = Rand ();
-    Bytes = MIN (sizeof (Value), Length - I);
-    CopyMem (Bits, &Value, Bytes);
-  }
-
-  return EFI_SUCCESS;
-}
-
 /**
   Produces and returns an RNG value using either the default or specified RNG
   algorithm.
@@ -157,10 +173,9 @@ STATIC
 EFI_STATUS
 EFIAPI
 PseudoRngGetRNG (
-  IN EFI_RNG_PROTOCOL   *This,
-  IN EFI_RNG_ALGORITHM  *RNGAlgorithm,
-  OPTIONAL
-  IN UINTN              RNGValueLength,
+  IN  EFI_RNG_PROTOCOL  *This,
+  IN  EFI_RNG_ALGORITHM *RNGAlgorithm OPTIONAL,
+  IN  UINTN             RNGValueLength,
   OUT UINT8             *RNGValue
   )
 {
@@ -174,34 +189,44 @@ PseudoRngGetRNG (
   // We only support the raw algorithm, so reject requests for anything else
   //
   if ((RNGAlgorithm != NULL) &&
-      !CompareGuid (RNGAlgorithm, &gEfiRngAlgorithmRaw))
-  {
+      !CompareGuid (RNGAlgorithm, &gEfiRngAlgorithmRaw)) {
     return EFI_UNSUPPORTED;
   }
 
   Status = GetTrngData (RNGValueLength, RNGValue);
+
   return Status;
 }
 
-STATIC EFI_RNG_PROTOCOL  K1RngProtocol = {
+///
+/// The EFI_RNG_PROTOCOL instance produced by this driver.
+///
+STATIC EFI_RNG_PROTOCOL  mRngProtocol = {
   PseudoRngGetInfo,
   PseudoRngGetRNG
 };
 
-//
-// Entry point of this driver.
-//
+/**
+  The entry point of the PseudoRng driver.
+
+  @param[in] ImageHandle  The image handle of the driver.
+  @param[in] SystemTable  A pointer to the EFI System Table.
+
+  @retval EFI_SUCCESS     The driver was initialized successfully.
+  @retval Others          Failed to install the RNG protocol.
+
+**/
 EFI_STATUS
 EFIAPI
-K1RngDxeEntryPoint (
-  IN EFI_HANDLE        ImageHandle,
-  IN EFI_SYSTEM_TABLE  *SystemTable
+RngDxeEntryPoint (
+  IN  EFI_HANDLE        ImageHandle,
+  IN  EFI_SYSTEM_TABLE  *SystemTable
   )
 {
   return gBS->InstallMultipleProtocolInterfaces (
-                                                 &ImageHandle,
-                                                 &gEfiRngProtocolGuid,
-                                                 &K1RngProtocol,
-                                                 NULL
-                                                 );
+                &ImageHandle,
+                &gEfiRngProtocolGuid,
+                &mRngProtocol,
+                NULL
+                );
 }

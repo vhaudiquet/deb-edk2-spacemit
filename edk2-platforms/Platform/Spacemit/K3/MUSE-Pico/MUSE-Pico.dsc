@@ -33,6 +33,7 @@
   0|DEFAULT
   1|COM260
   2|FML13V05
+  3|EVB
 
 !include MdePkg/MdeLibs.dsc.inc
 !include Silicon/Spacemit/Spacemit.dsc.inc
@@ -181,6 +182,22 @@
   gSpacemitTokenSpaceGuid.PcdSdCardIsEnabled|TRUE
   gSpacemitTokenSpaceGuid.PcdSdCardDetectGpioPin|88
   gSpacemitTokenSpaceGuid.PcdSdCardDetectActive|TRUE
+
+[PcdsDynamicDefault.common.EVB]
+  # EVB hardware configuration
+  # GMAC0 + GMAC1 + GMAC2 + GMAC3 (all 4 ports available on EVB)
+  gSpacemitK3TokenSpaceGuid.PcdGmacUseMask|0x0F
+  # EVB: enable controllers 0,3,4 (PortA DRD + PortD + USB2)
+  gSpacemitK3TokenSpaceGuid.PcdUsbHostEnableMask|0x19
+  # EVB: limit controller 0,1,2,4 to HS
+  gSpacemitK3TokenSpaceGuid.PcdUsbHostHsOnlyMask|0x17
+
+  # SD card: cd-gpios = <&gpio 2 22 GPIO_ACTIVE_LOW> -> pin 86, active LOW
+  gSpacemitTokenSpaceGuid.PcdSdCardIsEnabled|TRUE
+  gSpacemitTokenSpaceGuid.PcdSdCardDetectGpioPin|86
+  gSpacemitTokenSpaceGuid.PcdSdCardDetectActive|FALSE
+  # eMMC
+  gSpacemitTokenSpaceGuid.PcdEmmcIsEnabled|TRUE
 
 [PcdsFeatureFlag.common]
   gSpacemitTokenSpaceGuid.PcdEscEnterBootMenu|FALSE
@@ -655,7 +672,7 @@
   gSpacemitTokenSpaceGuid.PcdSdCardTxDelayCode|31
 
   # EMMC configuration
-  gSpacemitTokenSpaceGuid.PcdEmmcClockRate|208000000
+  gSpacemitTokenSpaceGuid.PcdEmmcClockRate|200000000
 
 !if $(ACPI_ENABLE) == TRUE
   gEfiMdeModulePkgTokenSpaceGuid.PcdAcpiExposedTableVersions|0x20
@@ -701,7 +718,7 @@
   Silicon/Spacemit/K3/Drivers/PlatformInfoDxe/PlatformInfoDxe.inf
 
   # SMBIOS Type 1/2/3 TLV override (depends on platform info)
-  Silicon/Spacemit/Drivers/SmbiosTlvOverrideDxe/SmbiosTlvOverrideDxe.inf
+  Silicon/Spacemit/K3/Drivers/Smbios/SmbiosTlvOverrideDxe/SmbiosTlvOverrideDxe.inf
 
   # eFuse read protocol
   Silicon/Spacemit/K3/Drivers/EfuseDxe/EfuseDxe.inf
