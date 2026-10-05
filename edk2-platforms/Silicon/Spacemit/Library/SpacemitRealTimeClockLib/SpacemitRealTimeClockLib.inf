@@ -1,0 +1,52 @@
+#/** @file
+#
+#  SpacemiT platform copy of the virtual EFI RealTimeClock library that
+#  refuses all time services once ExitBootServices() has been called.
+#
+#  The virtual clock keeps its epoch in non-volatile UEFI variables.  The
+#  variable driver serves runtime reads from a RAM cache, so GetTime() at
+#  runtime is harmless.  SetTime() at runtime, however, issues
+#  non-volatile SetVariable() calls, which run the full flash write chain
+#  (variable driver -> fault tolerant write -> FlashFvbDxe -> SpiNorFlashDxe
+#  -> SpacemitQspiDxe) in QSPI controller command mode while the OS owns
+#  the platform.  On the K3 this path never returns: the first runtime
+#  SetTime() wedges the CPU inside firmware (Linux 7.3 detects it after
+#  120s as "EFI runtime service 2 wedged in firmware" and permanently
+#  parks the efi_rts_wq worker; older kernels hang forever).  The clock
+#  itself is fake anyway (build-time epoch plus the performance counter),
+#  so nothing of value is lost by refusing it at runtime.
+#
+#  Copyright (c) 2019, Pete Batard <pete@akeo.ie>
+#  Copyright (c) 2018, Andrei Warkentin <andrey.warkentin@gmail.com>
+#  Copyright (c) Microsoft Corporation. All rights reserved.
+#  Copyright (c) 2026, SpacemiT Co., Ltd. All rights reserved.<BR>
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+#**/
+
+[Defines]
+  INF_VERSION                    = 0x0001001A
+  BASE_NAME                      = SpacemitRealTimeClockLib
+  FILE_GUID                      = cf235449-3105-4b7d-a782-a51c03fc4581
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = RealTimeClockLib
+
+[Sources.common]
+  SpacemitRealTimeClockLib.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  EmbeddedPkg/EmbeddedPkg.dec
+
+[LibraryClasses]
+  IoLib
+  DebugLib
+  TimerLib
+  TimeBaseLib
+  UefiRuntimeLib
+
+# Current usage of this library expects GCC in a UNIX-like shell environment with the date command
+[BuildOptions]
+  GCC:*_*_*_CC_FLAGS = -DBUILD_EPOCH=`printenv SOURCE_DATE_EPOCH || date +%s`
