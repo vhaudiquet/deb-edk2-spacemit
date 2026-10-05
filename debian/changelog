@@ -1,3 +1,10 @@
+edk2-spacemit (0.0.9-3) resolute; urgency=medium
+
+  * Silicon/Spacemit/FdtFixupDxe: describe the GOP framebuffer
+    in the devicetree
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Mon, 05 Oct 2026 13:52:07 +0200
+
 edk2-spacemit (0.0.9-2) resolute; urgency=medium
 
   * Silicon/Spacemit/K3/LcdDpDxe: retry link training at enable
