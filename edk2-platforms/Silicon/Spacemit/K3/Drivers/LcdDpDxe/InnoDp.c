@@ -1438,7 +1438,7 @@ SocDpModeSet (
 
   SocDpHwSetMsa (Dp, Mode, Dp->Phy.LinkRateKhz, Dp->Phy.LaneCount);
 
-  return 0;
+  return Ret;
 }
 
 INTN

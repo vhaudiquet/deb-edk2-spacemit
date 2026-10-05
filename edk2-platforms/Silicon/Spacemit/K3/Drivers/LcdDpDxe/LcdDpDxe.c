@@ -413,6 +413,7 @@ DpEnable (
   SPACEMIT_MODE_INFO          *Info;
   IN UINT32                   Freq;
   SILICON_CLOCKCTRL_PROTOCOL  *ClockCtrlProtocol;
+  INT32                       i;
 
   DEBUG ((DEBUG_INFO, "%s\n", __FUNCTION__));
 
@@ -491,9 +492,28 @@ DpEnable (
   Mode->Flags |= SOC_DP_MODE_FLAG_PHSYNC;
   Mode->Flags |= SOC_DP_MODE_FLAG_PVSYNC;
 
-  if (SocDpModeSet (&Priv->DpDev, Mode) == 0) {
-    SocDpHwEnable (&Priv->DpDev);
+  /*
+   * DP-HDMI adapters need time to come up even once they serve an EDID:
+   * the first training attempt can race the adapter's own bring-up, and
+   * a failure here would light the GOP into a dead link -- no early
+   * video, and nothing for the OS handoff to adopt. Retry with a
+   * bounded delay.
+   */
+  for (i = 0; i < 5; i++) {
+    if (SocDpModeSet (&Priv->DpDev, Mode) == 0) {
+      break;
+    }
+
+    DEBUG ((DEBUG_ERROR, "DP: link training failed (round %d); retrying\n", i));
+    gBS->Stall (400 * 1000);
   }
+
+  /*
+   * Best effort either way: an untrained link still gets an enabled
+   * transmitter and a lit GOP, exactly as before -- the OS bring-up
+   * then retries from scratch.
+   */
+  SocDpHwEnable (&Priv->DpDev);
 
   return EFI_SUCCESS;
 }
