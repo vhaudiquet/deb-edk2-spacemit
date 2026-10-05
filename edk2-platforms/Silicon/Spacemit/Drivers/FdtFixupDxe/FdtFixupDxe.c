@@ -18,6 +18,7 @@
 #include <Uefi/UefiBaseType.h>
 
 #include <Protocol/PlatformInfo.h>
+#include <Protocol/GraphicsOutput.h>
 #include "FdtFixupDxe.h"
 
 #define SHIFT1  29
@@ -247,6 +248,276 @@ UpdateMacAddr (
   }
 }
 
+//
+// compatible is a NUL-separated list of strings.
+//
+STATIC
+BOOLEAN
+FdtCompatibleListContains (
+  IN CONST CHAR8  *Compatible,
+  IN INT32        Length,
+  IN CONST CHAR8  *Name
+  )
+{
+  INT32  Offset = 0;
+  INT32  StringLength;
+
+  while (Offset < Length) {
+    StringLength = AsciiStrLen (Compatible + Offset);
+    if ((StringLength > 0) && (AsciiStrCmp (Compatible + Offset, Name) == 0)) {
+      return TRUE;
+    }
+
+    Offset += StringLength + 1;
+  }
+
+  return FALSE;
+}
+
+STATIC
+UINT32
+FdtNextPhandle (
+  IN VOID  *Fdt
+  )
+{
+  CONST UINT8  *Prop;
+  INT32        NodeOff, Len, Depth;
+  UINT32       Max, Value;
+
+  Max = 0;
+  for (NodeOff = fdt_next_node (Fdt, -1, &Depth);
+       NodeOff >= 0;
+       NodeOff = fdt_next_node (Fdt, NodeOff, &Depth))
+  {
+    Prop = fdt_getprop (Fdt, NodeOff, "phandle", &Len);
+    if ((Prop != NULL) && (Len == (INT32)sizeof (UINT32))) {
+      Value = ((UINT32)Prop[0] << 24) | ((UINT32)Prop[1] << 16) |
+              ((UINT32)Prop[2] << 8) | (UINT32)Prop[3];
+      if (Value > Max) {
+        Max = Value;
+      }
+    }
+  }
+
+  return Max + 1;
+}
+
+//
+// Pack an address/size pair with the cells the given parent node declares
+// for its children. Returns the packed length, or -1 on unsupported cells.
+//
+STATIC
+INT32
+FdtPackRegAt (
+  IN CONST VOID  *Fdt,
+  IN INT32       ParentOff,
+  OUT VOID       *Buf,
+  IN UINT64      Address,
+  IN UINT64      Size
+  )
+{
+  INT32  AddressCells = fdt_address_cells (Fdt, ParentOff);
+  INT32  SizeCells    = fdt_size_cells (Fdt, ParentOff);
+  CHAR8  *P           = Buf;
+
+  if ((AddressCells < 1) || (AddressCells > 2) ||
+      (SizeCells < 1) || (SizeCells > 2))
+  {
+    return -1;
+  }
+
+  if (AddressCells == 2) {
+    *(fdt64_t *)P = cpu_to_fdt64 (Address);
+  } else {
+    *(fdt32_t *)P = cpu_to_fdt32 (Address);
+  }
+
+  P += 4 * AddressCells;
+
+  if (SizeCells == 2) {
+    *(fdt64_t *)P = cpu_to_fdt64 (Size);
+  } else {
+    *(fdt32_t *)P = cpu_to_fdt32 (Size);
+  }
+
+  P += 4 * SizeCells;
+
+  return P - (CHAR8 *)Buf;
+}
+
+//
+// Describe the GOP framebuffer to the kernel as a simple-framebuffer node
+// under /chosen, backed by a /reserved-memory region, so the kernel's early
+// display driver can keep the display pipeline (whose clocks the node
+// references) alive from the earliest boot point until the real display
+// driver claims it. Without the node, the framebuffer is only described by
+// the EFI screen_info, which carries no clock information: the generic
+// kernel then gates the firmware's pipeline clocks as unused and the early
+// scanout dies until the display driver re-enables it.
+//
+// The memory is described through a /reserved-memory region referenced by
+// a memory-region phandle, like the kernel's own simple-framebuffer users:
+// a plain reg property under /chosen does not survive the kernel's address
+// translation (children of non-bus nodes), and the node is rebuilt from
+// live GOP state on every fixup. Only created when the firmware actually
+// lit a display: a headless boot keeps the devicetree unchanged.
+//
+STATIC
+VOID
+UpdateFramebufferNode (
+  IN VOID  *Fdt
+  )
+{
+  EFI_GRAPHICS_OUTPUT_PROTOCOL         *Gop;
+  EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info;
+  CONST VOID                           *DpuClocks;
+  CONST CHAR8                          *Compatible, *Format, *NodeStatus;
+  EFI_STATUS                           Status;
+  UINT8                                Clocks[128];
+  CHAR8                                Reg[16];
+  INT32                                ClocksLength;
+  INT32                                ClkLen, CompatLen;
+  INT32                                ChosenOff, RsvOff, FbRsvOff, FbOff, SocOff, NodeOff;
+  INT32                                RegLength, Ret;
+  UINT32                               Phandle;
+
+  Status = gBS->LocateProtocol (&gEfiGraphicsOutputProtocolGuid, NULL, (VOID **)&Gop);
+  if (EFI_ERROR (Status) || (Gop->Mode == NULL) || (Gop->Mode->Info == NULL)) {
+    return;
+  }
+
+  Info = Gop->Mode->Info;
+
+  switch (Info->PixelFormat) {
+    case PixelRedGreenBlueReserved8BitPerColor:
+      Format = "x8b8g8r8";
+      break;
+    case PixelBlueGreenRedReserved8BitPerColor:
+      Format = "x8r8g8b8";
+      break;
+    default:
+      // Bit-mask and BLT-only formats have no direct simplefb representation.
+      return;
+  }
+
+  //
+  // The framebuffer memory: a /reserved-memory region, referenced from the
+  // /chosen node by a memory-region phandle.
+  //
+  RsvOff = fdt_path_offset (Fdt, "/reserved-memory");
+  if (RsvOff < 0) {
+    RsvOff = fdt_add_subnode (Fdt, 0, "reserved-memory");
+    if (RsvOff < 0) {
+      DEBUG ((DEBUG_WARN, "add reserved-memory node fail(%a).\n", fdt_strerror (RsvOff)));
+      return;
+    }
+
+    fdt_setprop_u32 (Fdt, RsvOff, "#address-cells", 2);
+    fdt_setprop_u32 (Fdt, RsvOff, "#size-cells", 2);
+    fdt_setprop (Fdt, RsvOff, "ranges", "", 0);
+  }
+
+  FbRsvOff = fdt_subnode_offset (Fdt, RsvOff, "framebuffer");
+  if (FbRsvOff >= 0) {
+    fdt_del_node (Fdt, FbRsvOff);
+  }
+
+  FbRsvOff = fdt_add_subnode (Fdt, RsvOff, "framebuffer");
+  if (FbRsvOff < 0) {
+    DEBUG ((DEBUG_WARN, "add framebuffer reserved-memory node fail(%a).\n", fdt_strerror (FbRsvOff)));
+    return;
+  }
+
+  RegLength = FdtPackRegAt (Fdt, RsvOff, Reg, Gop->Mode->FrameBufferBase, Gop->Mode->FrameBufferSize);
+  if (RegLength < 0) {
+    return;
+  }
+
+  fdt_setprop (Fdt, FbRsvOff, "reg", Reg, RegLength);
+
+  Phandle = FdtNextPhandle (Fdt);
+  fdt_setprop_u32 (Fdt, FbRsvOff, "phandle", Phandle);
+
+  //
+  // The /chosen node the kernel's framebuffer arbitration looks for.
+  // Resolved only now: libfdt offsets do not survive tree mutations, and
+  // the reserved-memory insertion above is a root-level mutation that
+  // shifts every later node. An offset resolved before it goes stale.
+  //
+  ChosenOff = fdt_path_offset (Fdt, "/chosen");
+  if (ChosenOff < 0) {
+    return;
+  }
+
+  FbOff = fdt_subnode_offset (Fdt, ChosenOff, "framebuffer");
+  if (FbOff >= 0) {
+    fdt_del_node (Fdt, FbOff);
+  }
+
+  FbOff = fdt_add_subnode (Fdt, ChosenOff, "framebuffer");
+  if (FbOff < 0) {
+    DEBUG ((DEBUG_WARN, "add framebuffer node fail(%a).\n", fdt_strerror (FbOff)));
+    return;
+  }
+
+  fdt_setprop (Fdt, FbOff, "compatible", "simple-framebuffer", sizeof ("simple-framebuffer"));
+  fdt_setprop_u32 (Fdt, FbOff, "width", Info->HorizontalResolution);
+  fdt_setprop_u32 (Fdt, FbOff, "height", Info->VerticalResolution);
+  fdt_setprop_u32 (Fdt, FbOff, "stride", Info->PixelsPerScanLine * 4);
+  fdt_setprop (Fdt, FbOff, "format", Format, AsciiStrLen (Format) + 1);
+  fdt_setprop_u32 (Fdt, FbOff, "memory-region", Phandle);
+
+  //
+  // Reference the display pipelines' own clocks, so the kernel holds the
+  // very clock objects its display driver will later claim. The clocks of
+  // every available (non-disabled) Saturn DPU are included.
+  //
+  ClocksLength = 0;
+  SocOff = fdt_path_offset (Fdt, "/soc");
+  if (SocOff >= 0) {
+    fdt_for_each_subnode (NodeOff, Fdt, SocOff) {
+      Compatible = fdt_getprop (Fdt, NodeOff, "compatible", &CompatLen);
+      if ((Compatible == NULL) ||
+          !FdtCompatibleListContains (Compatible, CompatLen, "spacemit,k3-saturn-dpu"))
+      {
+        continue;
+      }
+
+      NodeStatus = fdt_getprop (Fdt, NodeOff, "status", NULL);
+      if ((NodeStatus != NULL) && (AsciiStrCmp (NodeStatus, "disabled") == 0)) {
+        continue;
+      }
+
+      DpuClocks = fdt_getprop (Fdt, NodeOff, "clocks", &ClkLen);
+      if ((DpuClocks == NULL) || (ClkLen <= 0) ||
+          ((ClocksLength + ClkLen) > (INT32)sizeof (Clocks)))
+      {
+        continue;
+      }
+
+      CopyMem (Clocks + ClocksLength, DpuClocks, ClkLen);
+      ClocksLength += ClkLen;
+    }
+
+    if (ClocksLength > 0) {
+      Ret = fdt_setprop (Fdt, FbOff, "clocks", Clocks, ClocksLength);
+      if (Ret < 0) {
+        DEBUG ((DEBUG_WARN, "set framebuffer clocks fail(%a).\n", fdt_strerror (Ret)));
+      }
+    }
+  }
+
+  DEBUG ((
+    DEBUG_INFO,
+    "Framebuffer node: %dx%d, stride %d, 0x%lx+0x%lx\n",
+    Info->HorizontalResolution,
+    Info->VerticalResolution,
+    Info->PixelsPerScanLine * 4,
+    Gop->Mode->FrameBufferBase,
+    Gop->Mode->FrameBufferSize
+    ));
+}
+
 STATIC
 VOID
 UpdateMemoryNode (
@@ -379,6 +650,7 @@ EFIFdtUpdate (
   UpdatePartNumber (Fdt);
   UpdateMacAddr (Fdt);
   UpdateMemoryNode (Fdt);
+  UpdateFramebufferNode (Fdt);
   UpdatePlatformInfo (Fdt);
 
   *DtbSize = (UINTN)fdt_totalsize (Fdt);

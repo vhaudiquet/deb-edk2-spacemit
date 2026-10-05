@@ -37,6 +37,7 @@
 [Protocols]
   gEfiFdtFixupProtocolGuid                       ## PRODUCES
   gSpacemitPlatformInfoProtocolGuid              ## CONSUMES
+  gEfiGraphicsOutputProtocolGuid                 ## CONSUMES
 
 [Pcd]
   gSpacemitTokenSpaceGuid.PcdDefaultSerialNumber
