@@ -1,3 +1,12 @@
+edk2-spacemit (0.0.9-2) resolute; urgency=medium
+
+  * Silicon/Spacemit/K3/LcdDpDxe: retry link training at enable
+  * Silicon/Spacemit/K3/LcdDpDxe: wait for the sink EDID to stabilise
+  * d/control: mark uuid-dev :native for cross builds
+  * Silicon/Spacemit: LcdGraphicsOutputDxe: activate a mode before installing GOP
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Mon, 05 Oct 2026 11:09:33 +0200
+
 edk2-spacemit (0.0.9-1) resolute; urgency=medium
 
   * Rebased onto the upstream 0.0.9 snapshot
