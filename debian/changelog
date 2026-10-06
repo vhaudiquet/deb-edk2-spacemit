@@ -1,3 +1,11 @@
+edk2-spacemit (0.0.9-4) resolute; urgency=medium
+
+  * Silicon/Spacemit: publish the runtime services properties table
+  * Silicon/Spacemit: refuse the EFI time services at runtime
+  * Silicon/Spacemit: STQspiDxe: bound the controller register polls
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Tue, 06 Oct 2026 10:46:19 +0200
+
 edk2-spacemit (0.0.9-3) resolute; urgency=medium
 
   * Silicon/Spacemit/FdtFixupDxe: describe the GOP framebuffer
