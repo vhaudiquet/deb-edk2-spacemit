@@ -1,0 +1,40 @@
+## @file
+#  Publish EFI_RT_PROPERTIES_TABLE for the runtime services this platform
+#  actually supports after ExitBootServices().
+#
+#  Copyright (c) 2026, SpacemiT Co., Ltd. All rights reserved.<BR>
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001B
+  BASE_NAME                      = RtPropertiesDxe
+  FILE_GUID                      = 192605a3-fd2a-4803-83f9-12245cfbe78d
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = RtPropertiesInitialize
+
+#
+# The following information is for reference only and not required by the
+# build tools.
+#
+#  VALID_ARCHITECTURES           = RISCV64
+#
+
+[Sources]
+  RtPropertiesDxe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  DebugLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+
+[Guids]
+  gEfiRtPropertiesTableGuid   ## PRODUCES ## Configuration table
+
+[Depex]
+  TRUE

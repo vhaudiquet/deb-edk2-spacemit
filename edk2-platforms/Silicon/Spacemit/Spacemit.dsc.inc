@@ -401,6 +401,12 @@
   # Capsule Architectural
   MdeModulePkg/Universal/CapsuleRuntimeDxe/CapsuleRuntimeDxe.inf
 
+  # Describe the runtime services actually supported after
+  # ExitBootServices(): variable reads from the RAM cache and reset;
+  # everything whose implementation writes the flash at runtime is
+  # masked off.
+  Silicon/Spacemit/Drivers/RtPropertiesDxe/RtPropertiesDxe.inf
+
   #
   # Device Path driver
   #
