@@ -7,6 +7,7 @@ Build-Depends:
  python3:any,
  u-boot-tools,
  device-tree-compiler,
+ gcc-riscv64-linux-gnu,
  uuid-dev:native,
 Standards-Version: 4.7.3
 Homepage: https://github.com/spacemit-com/edk2-spacemit
