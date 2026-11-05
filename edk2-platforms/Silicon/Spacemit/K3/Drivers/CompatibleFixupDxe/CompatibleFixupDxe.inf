@@ -1,0 +1,46 @@
+## @file
+#  Fix up the root DTB "compatible" property for the COM260 board family.
+#
+#  Copyright (c) 2026, Spacemit Ltd. All rights reserved.
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+##
+
+[Defines]
+  INF_VERSION                    = 0x0001001B
+  BASE_NAME                      = SpacemitK3CompatibleFixupDxe
+  FILE_GUID                      = d1b3e7a9-4c2f-4f5a-9d8c-3e51b7a02d16
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = CompatibleFixupDxeEntryPoint
+
+[Sources]
+  CompatibleFixupDxe.c
+
+[Packages]
+  EmbeddedPkg/EmbeddedPkg.dec
+  MdePkg/MdePkg.dec
+  Silicon/Spacemit/K3/K3.dec
+  Silicon/Spacemit/SpacemitPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  DebugLib
+  FdtLib
+  HobLib
+  PcdLib
+  PrintLib
+  UefiBootServicesTableLib
+  UefiDriverEntryPoint
+
+[Guids]
+  gFdtHobGuid      ## CONSUMES
+  gFdtTableGuid    ## CONSUMES
+
+[Protocols]
+  gSpacemitPlatformInfoProtocolGuid     ## CONSUMES
+  gSpacemitK3SkuSelectDoneProtocolGuid  ## CONSUMES
+
+[Depex]
+  gSpacemitK3SkuSelectDoneProtocolGuid AND gSpacemitPlatformInfoProtocolGuid

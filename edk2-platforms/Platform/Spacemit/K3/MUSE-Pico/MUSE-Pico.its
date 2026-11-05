@@ -43,6 +43,16 @@
                 algo = "crc32";
             };
         };
+
+        fdt_3 {
+            description = "k3-deepcomputing-fml13v05";
+            type = "flat_dt";
+            compression = "none";
+            data = /incbin/("./k3-deepcomputing-fml13v05.dtb");
+            hash-1 {
+                algo = "crc32";
+            };
+        };
     };
 
     configurations {
@@ -55,6 +65,24 @@
 
         conf_2 {
             description = "k3_com260_ifx";
+            loadables = "uefi";
+            fdt = "fdt_2";
+        };
+
+        conf_3 {
+            description = "k3-deepcomputing-fml13v05";
+            loadables = "uefi";
+            fdt = "fdt_3";
+        };
+
+        conf_4 {
+            description = "k3_com260_tq";
+            loadables = "uefi";
+            fdt = "fdt_2";
+        };
+
+        conf_5 {
+            description = "k3_com260_ifx_tq";
             loadables = "uefi";
             fdt = "fdt_2";
         };

@@ -1,0 +1,19 @@
+/*
+ * SPDX-License-Identifier: BSD-2-Clause
+ *
+ * Copyright (c) 2026, Spacemit Ltd.
+ *
+ * DeepComputing FML13V05 board.  The FIT configuration description
+ * ("k3-deepcomputing-fml13v05") matches the TLV EEPROM product_name so
+ * the U-Boot SPL selects this board DTB automatically.
+ */
+
+/dts-v1/;
+
+#include "K3Cpus.dtsi"
+#include "K3.dtsi"
+
+/ {
+	model = "DeepComputing FML13V05";
+	compatible = "deepcomputing,fml13v05", "spacemit,k3", "riscv";
+};

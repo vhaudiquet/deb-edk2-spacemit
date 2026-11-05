@@ -194,6 +194,8 @@ READ_LOCK_STATUS   = TRUE
 
 # SKU selection
 INF Silicon/Spacemit/K3/Drivers/SkuSelectDxe/SkuSelectDxe.inf
+# DTB compatible fixup (COM260)
+INF Silicon/Spacemit/K3/Drivers/CompatibleFixupDxe/CompatibleFixupDxe.inf
 
 #
 # ACPI support

@@ -720,6 +720,9 @@
   # SMBIOS Type 1/2/3 TLV override (depends on platform info)
   Silicon/Spacemit/K3/Drivers/Smbios/SmbiosTlvOverrideDxe/SmbiosTlvOverrideDxe.inf
 
+  # Fix up DTB compatible for COM260 (needs SKU + platform info)
+  Silicon/Spacemit/K3/Drivers/CompatibleFixupDxe/CompatibleFixupDxe.inf
+
   # eFuse read protocol
   Silicon/Spacemit/K3/Drivers/EfuseDxe/EfuseDxe.inf
 
