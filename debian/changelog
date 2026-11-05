@@ -1,3 +1,12 @@
+edk2-spacemit (0.0.9-6) resolute; urgency=medium
+
+  * k3: sync upstream commits
+    + DeepComputing FML13V05 board DTS and its FIT configuration
+    + CompatibleFixupDxe: rewrites first "compatible" reading TLV EEPROM
+    + COM260 TQ product names (k3_com260_tq, k3_com260_ifx_tq) in fdt_2
+
+ -- Valentin Haudiquet <valentin.haudiquet@canonical.com>  Thu, 05 Nov 2026 17:20:28 +0100
+
 edk2-spacemit (0.0.9-5) resolute; urgency=medium
 
   * d/control: build-depend on gcc-riscv64-linux-gnu
